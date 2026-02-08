@@ -43,14 +43,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <div className="min-h-screen px-6 md:px-12 lg:px-16 py-12 pb-28 lg:pb-16">
-      <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-10">
-        <Link href="/" className="hover:text-foreground transition-colors flex items-center gap-1">
-          <i className="ri-home-4-line" /> {settings.siteName || defaultSiteName}
+      <nav className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground mb-10">
+        <Link href="/" className="hover:text-foreground transition-colors flex items-center gap-1 min-w-0 max-w-[30vw] sm:max-w-none truncate">
+          <i className="ri-home-4-line shrink-0" /> <span className="truncate">{settings.siteName || defaultSiteName}</span>
         </Link>
-        <i className="ri-arrow-right-s-line text-muted-foreground/60" />
-        <Link href="/blog" className="hover:text-foreground transition-colors">{sectionLabel}</Link>
-        <i className="ri-arrow-right-s-line text-muted-foreground/60" />
-        <span className="text-foreground truncate max-w-[200px]">{post.title}</span>
+        <i className="ri-arrow-right-s-line text-muted-foreground/60 shrink-0" />
+        <Link href="/blog" className="hover:text-foreground transition-colors shrink-0">{sectionLabel}</Link>
+        <i className="ri-arrow-right-s-line text-muted-foreground/60 shrink-0" />
+        <span className="text-foreground truncate min-w-0 max-w-[50vw] sm:max-w-[200px]">{post.title}</span>
       </nav>
 
       <article>
@@ -102,25 +102,27 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </div>
 
         {(contentHtml || bodyPlain) && (
-          <div
-            className="prose prose-neutral dark:prose-invert prose-lg max-w-none
-              prose-headings:font-serif prose-headings:text-foreground prose-headings:font-semibold prose-headings:tracking-tight
-              prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
-              prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
-              prose-p:text-foreground/70 prose-p:leading-relaxed
-              prose-li:text-foreground/70
-              prose-strong:text-foreground
-              prose-theme prose-a:no-underline hover:prose-a:underline
-              prose-code:bg-accent prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
-              prose-pre:bg-accent prose-pre:border prose-pre:border-border
-              prose-blockquote:text-muted-foreground
-              prose-img:rounded-lg prose-img:max-w-full prose-img:h-auto prose-img:my-4
-              prose-mark:bg-yellow-200/80 prose-mark:dark:bg-yellow-900/40
-              [&_.tiptap-img]:rounded-lg [&_.tiptap-img]:max-w-full
-              [&_figure]:my-6 [&_figure_img]:my-0 [&_figcaption]:text-center [&_figcaption]:text-sm [&_figcaption]:text-muted-foreground [&_figcaption]:mt-2
-              [&_.checklist]:list-none [&_.checklist]:pl-0 [&_.checklist_li]:flex [&_.checklist_li]:items-start [&_.checklist_li]:gap-2
-            "
-          >
+          <div className="min-w-0 overflow-x-hidden">
+            <div
+              className="prose prose-neutral dark:prose-invert prose-lg max-w-none
+                prose-headings:font-serif prose-headings:text-foreground prose-headings:font-semibold prose-headings:tracking-tight
+                prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
+                prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
+                prose-p:text-foreground/70 prose-p:leading-relaxed
+                prose-li:text-foreground/70
+                prose-strong:text-foreground
+                prose-theme prose-a:no-underline hover:prose-a:underline
+                prose-code:bg-accent prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
+                prose-pre:bg-accent prose-pre:border prose-pre:border-border
+                prose-blockquote:text-muted-foreground
+                prose-img:rounded-lg prose-img:my-4
+                prose-mark:bg-yellow-200/80 prose-mark:dark:bg-yellow-900/40
+                [&_.tiptap-img]:rounded-lg
+                [&_figure]:my-6 [&_figure]:overflow-hidden [&_figure_img]:my-0 [&_figcaption]:text-center [&_figcaption]:text-sm [&_figcaption]:text-muted-foreground [&_figcaption]:mt-2
+                [&_.checklist]:list-none [&_.checklist]:pl-0 [&_.checklist_li]:flex [&_.checklist_li]:items-start [&_.checklist_li]:gap-2
+                [&_img]:max-w-full [&_img]:h-auto [&_img]:object-contain [&_img]:rounded-lg
+              "
+            >
             {contentHtml ? (
               <div dangerouslySetInnerHTML={{ __html: contentHtml }} />
             ) : (
@@ -128,6 +130,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 <p key={i}>{line || "\u00A0"}</p>
               ))
             )}
+            </div>
           </div>
         )}
 

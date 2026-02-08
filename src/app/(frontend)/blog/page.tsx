@@ -57,12 +57,12 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen px-6 md:px-12 lg:px-16 py-12 pb-28 lg:pb-16">
       <FadeContent>
-        <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-10">
-          <Link href="/" className="hover:text-foreground transition-colors flex items-center gap-1">
-            <i className="ri-home-4-line" /> {siteName || defaultSiteName}
+        <nav className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground mb-10">
+          <Link href="/" className="hover:text-foreground transition-colors flex items-center gap-1 min-w-0 max-w-[40vw] sm:max-w-none truncate">
+            <i className="ri-home-4-line shrink-0" /> <span className="truncate">{siteName || defaultSiteName}</span>
           </Link>
-          <i className="ri-arrow-right-s-line text-muted-foreground/60" />
-          <span className="text-foreground">{sectionLabel}</span>
+          <i className="ri-arrow-right-s-line text-muted-foreground/60 shrink-0" />
+          <span className="text-foreground shrink-0">{sectionLabel}</span>
         </nav>
       </FadeContent>
 
@@ -128,18 +128,21 @@ export default function BlogPage() {
                     {post.excerpt && (
                       <CardDescriptionHtml html={post.excerpt} className="mt-1.5" />
                     )}
-                    <div className="flex items-center gap-2 mt-2">
-                      <time className="text-xs font-mono text-muted-foreground/60">
+                    <div className="flex items-center gap-2 mt-2 min-w-0">
+                      <time className="text-xs font-mono text-muted-foreground/60 shrink-0">
                         {formatDate(post.createdAt)}
                       </time>
                       {(post.category?.name || (post.tags && post.tags.length > 0)) && (
-                        <div className="flex flex-wrap items-center gap-1.5">
+                        <div className="flex flex-nowrap items-center gap-1.5 min-w-0 overflow-hidden">
                           {post.category?.name && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/5 text-primary/70 font-medium">{post.category.name}</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/5 text-primary/70 font-medium shrink-0 max-w-[3.5rem] truncate" title={post.category.name}>{post.category.name}</span>
                           )}
-                          {post.tags?.map((tag) => (
-                            <span key={tag.id} className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{tag.name}</span>
+                          {(post.tags ?? []).slice(0, 3).map((tag) => (
+                            <span key={tag.id} className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0 max-w-[3.5rem] truncate" title={tag.name}>{tag.name}</span>
                           ))}
+                          {(post.tags?.length ?? 0) > 3 && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted/80 text-muted-foreground shrink-0">+{(post.tags?.length ?? 0) - 3}</span>
+                          )}
                         </div>
                       )}
                     </div>

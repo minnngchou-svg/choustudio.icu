@@ -53,12 +53,12 @@ export function WorksListByType({
   return (
     <div className="min-h-screen px-6 md:px-12 lg:px-16 py-12 pb-28 lg:pb-16">
       <FadeContent>
-        <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-10">
-          <Link href="/" className="hover:text-foreground transition-colors flex items-center gap-1">
-            <i className="ri-home-4-line" /> {siteName || defaultSiteName}
+        <nav className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground mb-10">
+          <Link href="/" className="hover:text-foreground transition-colors flex items-center gap-1 min-w-0 max-w-[40vw] sm:max-w-none truncate">
+            <i className="ri-home-4-line shrink-0" /> <span className="truncate">{siteName || defaultSiteName}</span>
           </Link>
-          <i className="ri-arrow-right-s-line text-muted-foreground/60" />
-          <span className="text-foreground">{sectionLabel}</span>
+          <i className="ri-arrow-right-s-line text-muted-foreground/60 shrink-0" />
+          <span className="text-foreground shrink-0">{sectionLabel}</span>
         </nav>
       </FadeContent>
 
@@ -110,13 +110,16 @@ export function WorksListByType({
                       <CardDescriptionHtml html={work.description} className="mt-1" />
                     )}
                     <div className="pt-3 flex items-end justify-between gap-2">
-                      <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+                      <div className="flex flex-nowrap items-center gap-1.5 min-w-0 overflow-hidden">
                         {work.category?.name && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/5 text-primary/70 font-medium">{work.category.name}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/5 text-primary/70 font-medium shrink-0 max-w-[3.5rem] truncate" title={work.category.name}>{work.category.name}</span>
                         )}
-                        {work.tags?.map((tag) => (
-                          <span key={tag.id} className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{tag.name}</span>
+                        {(work.tags ?? []).slice(0, 3).map((tag) => (
+                          <span key={tag.id} className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0 max-w-[3.5rem] truncate" title={tag.name}>{tag.name}</span>
                         ))}
+                        {(work.tags?.length ?? 0) > 3 && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted/80 text-muted-foreground shrink-0">+{(work.tags?.length ?? 0) - 3}</span>
+                        )}
                       </div>
                       <span className="font-serif text-2xl font-bold tracking-tight text-foreground leading-none shrink-0">
                         <span className="text-sm font-normal text-muted-foreground mr-0.5">¥</span>{work.isFree ? 0 : (work.price ?? 0)}

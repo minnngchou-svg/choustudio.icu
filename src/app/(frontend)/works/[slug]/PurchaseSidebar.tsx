@@ -4,7 +4,6 @@ import { CardDescriptionHtml } from "@/components/frontend/CardDescriptionHtml"
 import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { GlowBorder } from "@/components/react-bits"
-import { HoverPopover } from "@/components/ui/hover-popover"
 
 interface PurchaseSidebarProps {
   workId: string
@@ -335,15 +334,18 @@ export function PurchaseSidebar({
       <GlowBorder className="lg:sticky lg:top-12 rounded-2xl border border-border bg-card/50 backdrop-blur-sm">
         <div className="p-6 lg:p-8">
           {(categoryName || (tags && tags.length > 0)) && (
-            <div className="flex flex-wrap items-center gap-2 mb-4">
+            <div className="flex flex-nowrap items-center gap-2 mb-4 overflow-hidden">
               {categoryName && (
-                <span className="tag w-fit flex items-center gap-1">
-                  <i className="ri-folder-line" /> {categoryName}
+                <span className="tag shrink-0 flex items-center gap-1 max-w-[5rem] truncate" title={categoryName}>
+                  <i className="ri-folder-line shrink-0" /> <span className="truncate">{categoryName}</span>
                 </span>
               )}
-              {tags?.map((tag) => (
-                <span key={tag.id} className="tag w-fit">{tag.name}</span>
+              {(tags ?? []).slice(0, 3).map((tag) => (
+                <span key={tag.id} className="tag shrink-0 max-w-[4rem] truncate" title={tag.name}>{tag.name}</span>
               ))}
+              {(tags?.length ?? 0) > 3 && (
+                <span className="tag shrink-0 opacity-80">+{(tags?.length ?? 0) - 3}</span>
+              )}
             </div>
           )}
 
@@ -361,40 +363,27 @@ export function PurchaseSidebar({
 
           {/* 在线体验入口 */}
           {(demoUrl || demoQrCode) && (
-            <div className="flex items-center gap-3 mb-6">
+            <div className="mb-6 space-y-3">
+              {demoQrCode && (
+                <div className="flex flex-col items-center gap-2 p-4 rounded-xl border border-border bg-accent/30">
+                  <img
+                    src={demoQrCode}
+                    alt="扫码体验"
+                    className="w-36 h-36 rounded-lg object-contain"
+                  />
+                  <span className="text-xs text-muted-foreground">扫码体验</span>
+                </div>
+              )}
               {demoUrl && (
                 <a
                   href={demoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 py-2.5 rounded-xl border border-border bg-accent/50 hover:bg-accent text-foreground font-medium text-sm flex items-center justify-center gap-2 transition-all"
+                  className="w-full py-2.5 rounded-xl border border-border bg-accent/50 hover:bg-accent text-foreground font-medium text-sm flex items-center justify-center gap-2 transition-all"
                 >
                   <i className="ri-external-link-line" />
                   在线体验
                 </a>
-              )}
-              {demoQrCode && (
-                <HoverPopover
-                  content={
-                    <div className="flex flex-col items-center gap-2 p-1">
-                      <img
-                        src={demoQrCode}
-                        alt="扫码体验"
-                        className="w-40 h-40 rounded-lg object-contain"
-                      />
-                      <span className="text-xs text-muted-foreground">扫码体验</span>
-                    </div>
-                  }
-                  side="left"
-                >
-                  <button
-                    type="button"
-                    className="shrink-0 w-10 h-10 rounded-xl border border-border bg-accent/50 hover:bg-accent flex items-center justify-center transition-all"
-                    title="扫码体验"
-                  >
-                    <i className="ri-qr-code-line text-lg" />
-                  </button>
-                </HoverPopover>
               )}
             </div>
           )}

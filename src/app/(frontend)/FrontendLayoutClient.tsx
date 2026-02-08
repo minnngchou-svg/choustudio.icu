@@ -102,7 +102,7 @@ export default function FrontendLayoutClient({
           >
             {/* lg breakpoint: use sidebar width as margin */}
             <style>{`@media (min-width: 1024px) { .frontend-main-with-sidebar { margin-left: ${sidebarWidth}px; } }`}</style>
-            <div className="frontend-main-with-sidebar">
+            <div className="frontend-main-with-sidebar min-w-0 overflow-x-hidden">
               {children}
             </div>
           </main>
