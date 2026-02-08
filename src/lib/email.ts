@@ -167,7 +167,7 @@ function buildHtml(p: HtmlParams): string {
           <!-- Icon + Title -->
           <tr>
             <td align="center" style="padding:32px 32px 16px;">
-              <div style="width:56px; height:56px; border-radius:50%; background-color:#1a2e1a; display:inline-flex; align-items:center; justify-content:center; font-size:28px; line-height:56px;">
+              <div style="width:56px; height:56px; border-radius:50%; background-color:#1a2e1a; display:inline-block; text-align:center; font-size:28px; line-height:56px;">
                 ${p.isFree ? "🎁" : "💚"}
               </div>
             </td>
@@ -302,6 +302,7 @@ function buildWechatSection(
           <img src="cid:wechat-qr" alt="微信二维码" style="width:140px; height:140px; border-radius:8px; display:block;" />
         </div>
         <p style="margin:10px 0 0; font-size:12px; color:#525252;">长按或截图扫码添加</p>
+        <p style="margin:6px 0 0; font-size:11px; color:#525252;">图片加载较慢时，请稍等片刻</p>
       </td>
     </tr>`
   }

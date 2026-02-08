@@ -560,6 +560,7 @@ export default function SettingsPage() {
                               </div>
                               <p className="text-xs text-muted-foreground">
                                 填写{label}号/名称，或上传二维码图片
+                                {key === "wechat" && "。上传后将同步展示用户购买邮件内，不填则不显示"}
                               </p>
                             </>
                           )}
