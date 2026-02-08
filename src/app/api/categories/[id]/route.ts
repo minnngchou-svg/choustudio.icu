@@ -1,0 +1,90 @@
+import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@/lib/auth"
+import prisma from "@/lib/prisma"
+
+export const dynamic = "force-dynamic"
+
+type Params = { params: Promise<{ id: string }> }
+
+export async function PUT(request: NextRequest, { params }: Params) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "未登录" }, { status: 401 })
+  }
+
+  const { id } = await params
+  const body = await request.json()
+  const { name, slug } = body
+
+  const existing = await prisma.category.findUnique({ where: { id } })
+  if (!existing) {
+    return NextResponse.json({ error: "分类不存在" }, { status: 404 })
+  }
+
+  const updateData: Record<string, string> = {}
+  if (name && typeof name === "string" && name.trim()) {
+    updateData.name = name.trim()
+  }
+  if (slug && typeof slug === "string" && slug.trim()) {
+    // 检查 slug 唯一性
+    const slugConflict = await prisma.category.findFirst({
+      where: { slug: slug.trim(), id: { not: id } },
+    })
+    if (slugConflict) {
+      return NextResponse.json({ error: "该 Slug 已被使用" }, { status: 409 })
+    }
+    updateData.slug = slug.trim()
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    return NextResponse.json({ error: "没有要更新的字段" }, { status: 400 })
+  }
+
+  const updated = await prisma.category.update({ where: { id }, data: updateData })
+  return NextResponse.json(updated)
+}
+
+export async function DELETE(_request: NextRequest, { params }: Params) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "未登录" }, { status: 401 })
+  }
+
+  const { id } = await params
+
+  const existing = await prisma.category.findUnique({
+    where: { id },
+    include: {
+      _count: { select: { posts: true, works: true, tutorials: true } },
+    },
+  })
+  if (!existing) {
+    return NextResponse.json({ error: "分类不存在" }, { status: 404 })
+  }
+
+  const relatedCount = existing._count.posts + existing._count.works + existing._count.tutorials
+
+  if (relatedCount > 0) {
+    // 解除关联后再删除
+    if (existing.type === "POST") {
+      await prisma.post.updateMany({
+        where: { categoryId: id },
+        data: { categoryId: null },
+      })
+    } else if (existing.type === "TUTORIAL") {
+      await prisma.videoTutorial.updateMany({
+        where: { categoryId: id },
+        data: { categoryId: null },
+      })
+    } else {
+      // DESIGN, DEVELOPMENT, WORK
+      await prisma.work.updateMany({
+        where: { categoryId: id },
+        data: { categoryId: null },
+      })
+    }
+  }
+
+  await prisma.category.delete({ where: { id } })
+  return NextResponse.json({ ok: true })
+}

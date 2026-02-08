@@ -1,0 +1,61 @@
+import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@/lib/auth"
+import prisma from "@/lib/prisma"
+
+export const dynamic = "force-dynamic"
+
+export async function GET() {
+  const list = await prisma.tag.findMany({
+    orderBy: { name: "asc" },
+    include: {
+      _count: { select: { posts: true, works: true, tutorials: true } },
+      posts: { select: { id: true, title: true }, take: 20 },
+      works: { select: { id: true, title: true, workType: true }, take: 20 },
+      tutorials: { select: { id: true, title: true }, take: 20 },
+    },
+  })
+
+  return NextResponse.json(
+    list.map((t) => {
+      const items: { id: string; title: string; entityType: string }[] = [
+        ...t.posts.map((p) => ({ id: p.id, title: p.title, entityType: "post" as const })),
+        ...t.works.map((w) => ({
+          id: w.id,
+          title: w.title,
+          entityType: w.workType === "DEVELOPMENT" ? "development" : "design",
+        })),
+        ...t.tutorials.map((v) => ({ id: v.id, title: v.title, entityType: "tutorial" as const })),
+      ]
+      return {
+        id: t.id,
+        name: t.name,
+        count: t._count.posts + t._count.works + t._count.tutorials,
+        items,
+      }
+    }),
+    { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } },
+  )
+}
+
+export async function POST(request: NextRequest) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "未登录" }, { status: 401 })
+  }
+
+  const body = await request.json()
+  const { name } = body
+
+  if (!name || typeof name !== "string" || !name.trim()) {
+    return NextResponse.json({ error: "标签名称不能为空" }, { status: 400 })
+  }
+
+  // 检查是否已存在（标签名唯一）
+  const existing = await prisma.tag.findUnique({ where: { name: name.trim() } })
+  if (existing) {
+    return NextResponse.json({ error: "该标签已存在" }, { status: 409 })
+  }
+
+  const tag = await prisma.tag.create({ data: { name: name.trim() } })
+  return NextResponse.json({ ...tag, count: 0 }, { status: 201 })
+}
