@@ -11,6 +11,12 @@ function getIsWechat(): boolean {
   return /MicroMessenger/i.test(navigator.userAgent)
 }
 
+/** 检测当前是否在移动设备 */
+function getIsMobile(): boolean {
+  if (typeof navigator === "undefined") return false
+  return /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+}
+
 interface PurchaseSidebarProps {
   workId: string
   title: string
@@ -71,11 +77,13 @@ export function PurchaseSidebar({
   const [queryOpen, setQueryOpen] = useState(false)
   const [queryError, setQueryError] = useState("")
 
-  // ===== 微信环境 =====
+  // ===== 环境检测 =====
   const [isWechat, setIsWechat] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     setIsWechat(getIsWechat())
+    setIsMobile(getIsMobile())
   }, [])
 
   // ===== 购买弹窗 =====
@@ -348,18 +356,15 @@ export function PurchaseSidebar({
       <GlowBorder className="lg:sticky lg:top-12 rounded-2xl border border-border bg-card/50 backdrop-blur-sm">
         <div className="p-6 lg:p-8">
           {(categoryName || (tags && tags.length > 0)) && (
-            <div className="flex flex-nowrap items-center gap-2 mb-4 overflow-hidden">
+            <div className="flex flex-wrap items-center gap-2 mb-4">
               {categoryName && (
-                <span className="tag shrink-0 flex items-center gap-1 max-w-[5rem] truncate" title={categoryName}>
-                  <i className="ri-folder-line shrink-0" /> <span className="truncate">{categoryName}</span>
+                <span className="tag flex items-center gap-1" title={categoryName}>
+                  <i className="ri-folder-line shrink-0" /> {categoryName}
                 </span>
               )}
-              {(tags ?? []).slice(0, 3).map((tag) => (
-                <span key={tag.id} className="tag shrink-0 max-w-[4rem] truncate" title={tag.name}>{tag.name}</span>
+              {(tags ?? []).map((tag) => (
+                <span key={tag.id} className="tag" title={tag.name}>{tag.name}</span>
               ))}
-              {(tags?.length ?? 0) > 3 && (
-                <span className="tag shrink-0 opacity-80">+{(tags?.length ?? 0) - 3}</span>
-              )}
             </div>
           )}
 
@@ -445,13 +450,34 @@ export function PurchaseSidebar({
                 )}
               </div>
             ) : hasDeliveryUrl ? (
-              <button
-                onClick={openBuyDialog}
-                className="w-full py-3 rounded-xl bg-foreground text-background font-medium hover:opacity-90 transition-all flex items-center justify-center gap-2"
-              >
-                <i className={isFree ? "ri-gift-line" : "ri-shopping-cart-line"} />
-                {isFree ? "开源获取" : "立即购买"}
-              </button>
+              isMobile && !isFree ? (
+                <div className="space-y-2">
+                  <button
+                    onClick={() => {
+                      const url = window.location.href.split("?")[0]
+                      navigator.clipboard.writeText(url).then(() => {
+                        setCopied(true)
+                        setTimeout(() => setCopied(false), 2000)
+                      })
+                    }}
+                    className="w-full py-3 rounded-xl bg-foreground text-background font-medium hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                  >
+                    <i className={copied ? "ri-check-line" : "ri-link"} />
+                    {copied ? "已复制，去电脑端打开吧" : "复制链接，电脑端购买"}
+                  </button>
+                  <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                    移动端暂不支持扫码支付，请在电脑浏览器中打开链接购买
+                  </p>
+                </div>
+              ) : (
+                <button
+                  onClick={openBuyDialog}
+                  className="w-full py-3 rounded-xl bg-foreground text-background font-medium hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                >
+                  <i className={isFree ? "ri-gift-line" : "ri-shopping-cart-line"} />
+                  {isFree ? "开源获取" : "立即购买"}
+                </button>
+              )
             ) : (
               <div className="w-full py-3 rounded-xl bg-muted text-muted-foreground font-medium flex items-center justify-center gap-2 text-sm">
                 <i className="ri-eye-line" />
