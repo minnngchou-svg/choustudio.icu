@@ -52,3 +52,6 @@ next-env.d.ts
 # AI tool history (may contain sensitive env values)
 .specstory/
 .cursor/
+
+# private ops docs (contains real domain/server info)
+docs/DOMAIN_MIGRATION.md
