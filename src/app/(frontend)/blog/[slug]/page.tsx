@@ -3,7 +3,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getBaseUrl } from "@/lib/utils"
-import { htmlToPlainText } from "@/lib/content-format"
+import { CardDescriptionHtml } from "@/components/frontend/CardDescriptionHtml"
 import { contentToHtml, jsonToPlainText } from "@/lib/render-content"
 import { defaultNav } from "@/lib/nav-config"
 import { defaultPersonalName, defaultSiteName } from "@/lib/page-copy"
@@ -71,9 +71,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </h1>
 
         {post.excerpt && (
-          <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-            {htmlToPlainText(post.excerpt)}
-          </p>
+          <CardDescriptionHtml
+            html={post.excerpt}
+            lines={false}
+            className="text-lg text-muted-foreground mb-8 leading-relaxed"
+          />
         )}
 
         <div className="flex items-center gap-3 mb-10 pb-10 border-b border-border">

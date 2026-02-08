@@ -166,6 +166,7 @@ export default async function WorkDetailPage({ params }: WorkDetailPageProps) {
             currentVersion={work.currentVersion ?? null}
             demoUrl={work.demoUrl ?? null}
             demoQrCode={work.demoQrCode ?? null}
+            isDev={isDev}
           />
         </div>
       </div>

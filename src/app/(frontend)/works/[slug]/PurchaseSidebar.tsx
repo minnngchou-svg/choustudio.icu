@@ -1,7 +1,6 @@
 "use client"
 /** 作品详情页右侧购买侧栏：价格、购买/升级、邮箱、订单校验与支付跳转。 */
 import { CardDescriptionHtml } from "@/components/frontend/CardDescriptionHtml"
-import { htmlToPlainText } from "@/lib/content-format"
 import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { GlowBorder } from "@/components/react-bits"
@@ -20,6 +19,8 @@ interface PurchaseSidebarProps {
   currentVersion: string | null
   demoUrl?: string | null
   demoQrCode?: string | null
+  /** 开发类作品不展示价格和购买区域 */
+  isDev?: boolean
 }
 
 interface CheckResult {
@@ -50,6 +51,7 @@ export function PurchaseSidebar({
   currentVersion,
   demoUrl,
   demoQrCode,
+  isDev,
 }: PurchaseSidebarProps) {
   // ===== 共享状态 =====
   const [email, setEmail] = useState("")
@@ -397,6 +399,7 @@ export function PurchaseSidebar({
             </div>
           )}
 
+          {!isDev && (<>
           <div className="border-t border-border mb-6" />
 
           <div className="space-y-4">
@@ -500,6 +503,7 @@ export function PurchaseSidebar({
               </button>
             )}
           </div>
+          </>)}
 
           <div className="mt-6 pt-6 border-t border-border space-y-3 text-sm">
             {currentVersion && (

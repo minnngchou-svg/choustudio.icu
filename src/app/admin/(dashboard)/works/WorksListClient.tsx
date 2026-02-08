@@ -66,15 +66,17 @@ export function WorksListClient({ workType, title, description }: WorksListClien
           { label: "草稿", value: "DRAFT" },
         ],
       },
-      {
+    ]
+    if (workType === "design") {
+      filters.push({
         key: "isFree",
         label: "定价",
         options: [
           { label: "开源", value: "true" },
           { label: "付费", value: "false" },
         ],
-      },
-    ]
+      })
+    }
     if (categories.length > 0) {
       filters.push({
         key: "category.name",
@@ -214,9 +216,11 @@ export function WorksListClient({ workType, title, description }: WorksListClien
           </div>
         </TableCell>
         <TableCell>{work.category?.name ?? "-"}</TableCell>
-        <TableCell>
-          {work.isFree ? <Badge variant="secondary">开源</Badge> : (work.price != null && work.price > 0 ? `¥${work.price}` : "-")}
-        </TableCell>
+        {workType === "design" && (
+          <TableCell>
+            {work.isFree ? <Badge variant="secondary">开源</Badge> : (work.price != null && work.price > 0 ? `¥${work.price}` : "-")}
+          </TableCell>
+        )}
         <TableCell>
           <Badge variant={work.status === "PUBLISHED" ? "default" : "secondary"}>
             {work.status === "PUBLISHED" ? "已发布" : "草稿"}
@@ -291,7 +295,9 @@ export function WorksListClient({ workType, title, description }: WorksListClien
                 </TableHead>
                 <SortableTableHead column="title" currentSort={tc.sortColumn as string} currentDirection={tc.sortDirection} onToggle={(c) => tc.toggleSort(c as keyof Work)}>作品</SortableTableHead>
                 <SortableTableHead column="category.name" currentSort={tc.sortColumn as string} currentDirection={tc.sortDirection} onToggle={(c) => tc.toggleSort(c as keyof Work)}>分类</SortableTableHead>
-                <SortableTableHead column="price" currentSort={tc.sortColumn as string} currentDirection={tc.sortDirection} onToggle={(c) => tc.toggleSort(c as keyof Work)}>价格</SortableTableHead>
+                {workType === "design" && (
+                  <SortableTableHead column="price" currentSort={tc.sortColumn as string} currentDirection={tc.sortDirection} onToggle={(c) => tc.toggleSort(c as keyof Work)}>价格</SortableTableHead>
+                )}
                 <SortableTableHead column="status" currentSort={tc.sortColumn as string} currentDirection={tc.sortDirection} onToggle={(c) => tc.toggleSort(c as keyof Work)}>状态</SortableTableHead>
                 <SortableTableHead column="createdAt" currentSort={tc.sortColumn as string} currentDirection={tc.sortDirection} onToggle={(c) => tc.toggleSort(c as keyof Work)}>创建时间</SortableTableHead>
                 <TableHead className="w-[100px]">操作</TableHead>
@@ -299,7 +305,7 @@ export function WorksListClient({ workType, title, description }: WorksListClien
             </TableHeader>
             <TableBody>
               {tc.pagedData.length === 0 ? (
-                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">无匹配结果</TableCell></TableRow>
+                <TableRow><TableCell colSpan={workType === "design" ? 7 : 6} className="text-center text-muted-foreground py-8">无匹配结果</TableCell></TableRow>
               ) : tc.pagedData.map((work) => (
                 <TableRow key={work.id}>
                   <TableCell className="w-[40px]"><Checkbox checked={tc.selectedIds.has(work.id)} onCheckedChange={() => tc.toggleSelect(work.id)} /></TableCell>
@@ -319,13 +325,13 @@ export function WorksListClient({ workType, title, description }: WorksListClien
                   </TableHead>
                   <TableHead>作品</TableHead>
                   <TableHead>分类</TableHead>
-                  <TableHead>价格</TableHead>
+                  {workType === "design" && <TableHead>价格</TableHead>}
                   <TableHead>状态</TableHead>
                   <TableHead>创建时间</TableHead>
                   <TableHead className="w-[100px]">操作</TableHead>
                 </TableRow>
               </TableHeader>
-              <SortableTableBody items={works} columnCount={8} emptyText="暂无作品，点击「上传作品」添加">
+              <SortableTableBody items={works} columnCount={workType === "design" ? 8 : 7} emptyText="暂无作品，点击「上传作品」添加">
                 {(work) => (
                   <>
                     <TableCell className="w-[40px]">

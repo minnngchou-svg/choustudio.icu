@@ -128,7 +128,7 @@ export default function EditWorkPage() {
           }
         } catch { /* ignore */ }
       })
-      .catch(() => router.push("/admin/works/design"))
+      .catch(() => router.push("/admin/works"))
       .finally(() => setLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
@@ -310,7 +310,10 @@ export default function EditWorkPage() {
         toast.error(data.error || "保存失败")
         return
       }
-      router.push("/admin/works")
+      const listPath = workType === "DEVELOPMENT"
+        ? "/admin/works/development"
+        : "/admin/works/design"
+      router.push(listPath)
       router.refresh()
     } finally {
       setSaving(false)
@@ -335,7 +338,7 @@ export default function EditWorkPage() {
           </h1>
           <div className="flex items-center gap-2">
             <Button variant="outline" asChild>
-              <Link href="/admin/works">取消</Link>
+              <Link href={workType === "DEVELOPMENT" ? "/admin/works/development" : "/admin/works/design"}>取消</Link>
             </Button>
             <Button variant="secondary" onClick={() => handleSave("DRAFT")} disabled={saving}>
               {saving ? "保存中…" : "保存草稿"}
@@ -775,7 +778,12 @@ export default function EditWorkPage() {
                                     </button>
                                   )}
                                 </div>
-                                {v.changelog && <p className="text-xs text-muted-foreground line-clamp-2">{v.changelog}</p>}
+                                {v.changelog && (
+                                  <div
+                                    className="text-xs text-muted-foreground line-clamp-2 [&_strong]:font-semibold [&_em]:italic [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-0"
+                                    dangerouslySetInnerHTML={{ __html: v.changelog }}
+                                  />
+                                )}
                                 <p className="text-xs text-muted-foreground/60">{new Date(v.createdAt).toLocaleDateString("zh-CN")}</p>
                               </div>
                               <div className="flex items-center gap-0.5 flex-shrink-0">

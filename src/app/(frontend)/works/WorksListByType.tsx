@@ -97,7 +97,7 @@ export function WorksListByType({
                   <div className="aspect-[3/4] overflow-hidden bg-muted shrink-0 relative">
                     <CoverImage src={work.coverImage} alt={work.title} fallbackIcon={fallbackIcon} />
                     {work.isFree && (
-                      <span className="absolute top-2 left-2 z-10 text-[10px] font-medium px-2 py-0.5 rounded bg-emerald-500/90 text-white backdrop-blur-sm">
+                      <span className="absolute top-2 left-2 z-10 text-xs font-medium px-2.5 py-1 rounded-md bg-emerald-500/90 text-white backdrop-blur-sm">
                         开源
                       </span>
                     )}

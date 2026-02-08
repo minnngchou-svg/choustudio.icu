@@ -8,7 +8,7 @@ import { useNavConfig } from "@/hooks/useNavConfig"
 
 import { ALL_SOCIAL_ENTRIES, normalizeSocialUrl, isImageUrl, type SocialLinks } from "@/lib/social-links"
 import { HoverPopover } from "@/components/ui/hover-popover"
-import { htmlToPlainText } from "@/lib/content-format"
+import { CardDescriptionHtml } from "@/components/frontend/CardDescriptionHtml"
 import { normalizeAboutModules, type AboutModules } from "@/lib/about-types"
 import { defaultNav } from "@/lib/nav-config"
 import { defaultPageCopy, defaultSiteName } from "@/lib/page-copy"
@@ -189,9 +189,11 @@ export default function AboutPage() {
               <div className="space-y-10">
                 {intro ? (
                   <section>
-                    <div className="whitespace-pre-wrap text-foreground/80 leading-relaxed">
-                      {htmlToPlainText(intro)}
-                    </div>
+                    <CardDescriptionHtml
+                      html={intro}
+                      lines={false}
+                      className="text-foreground/80 leading-relaxed text-base"
+                    />
                   </section>
                 ) : null}
 
@@ -215,9 +217,11 @@ export default function AboutPage() {
                             </div>
                           ) : null}
                           {item.description ? (
-                            <div className="mt-1 text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">
-                              {htmlToPlainText(item.description)}
-                            </div>
+                            <CardDescriptionHtml
+                              html={item.description}
+                              lines={false}
+                              className="mt-1 text-foreground/80 text-sm leading-relaxed"
+                            />
                           ) : null}
                         </li>
                       ))}
