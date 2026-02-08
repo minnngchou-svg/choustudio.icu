@@ -53,7 +53,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <span className="text-foreground truncate max-w-[200px]">{post.title}</span>
       </nav>
 
-      <article className="max-w-3xl">
+      <article>
         <div className="flex items-center gap-3 mb-6 flex-wrap">
           {categoryName && <span className="tag">{categoryName}</span>}
           {post.tags?.map((tag: { id: string; name: string }) => (

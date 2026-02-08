@@ -1,5 +1,9 @@
 "use client"
-/** 悬浮触发的 Popover：移入显示、移出隐藏，trigger 与 content 间移动保持显示。 */
+/**
+ * 悬浮触发的 Popover：
+ * - 桌面端：鼠标悬浮显示，移出隐藏，trigger 与 content 间移动保持显示。
+ * - 移动端：点击切换显示/隐藏，点击外部区域关闭。
+ */
 import * as React from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
@@ -16,20 +20,35 @@ export function HoverPopover({
 }) {
   const [open, setOpen] = React.useState(false)
   const timeoutRef = React.useRef<ReturnType<typeof setTimeout>>(null)
+  const touchedRef = React.useRef(false)
 
   const handleEnter = React.useCallback(() => {
+    if (touchedRef.current) return
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
     setOpen(true)
   }, [])
 
   const handleLeave = React.useCallback(() => {
+    if (touchedRef.current) return
     timeoutRef.current = setTimeout(() => setOpen(false), 150)
+  }, [])
+
+  /** 移动端：touchEnd 切换开关，阻止后续模拟鼠标事件 */
+  const handleTouchEnd = React.useCallback((e: React.TouchEvent) => {
+    e.preventDefault()
+    touchedRef.current = true
+    setOpen((prev) => !prev)
   }, [])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <span onMouseEnter={handleEnter} onMouseLeave={handleLeave} className="inline-flex items-center">
+        <span
+          onTouchEnd={handleTouchEnd}
+          onMouseEnter={handleEnter}
+          onMouseLeave={handleLeave}
+          className="inline-flex items-center"
+        >
           {children}
         </span>
       </PopoverTrigger>
