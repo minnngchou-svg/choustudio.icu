@@ -4,7 +4,6 @@
  * 用法：包裹 dangerouslySetInnerHTML 的容器即可。
  */
 import { useState, useCallback, useEffect, useRef } from "react"
-import Image from "next/image"
 
 interface ProseImageLightboxProps {
   children: React.ReactNode
@@ -162,14 +161,11 @@ export function ProseImageLightbox({ children }: ProseImageLightboxProps) {
             className="w-full h-full flex items-center justify-center p-4 sm:p-8"
             onClick={(e) => e.stopPropagation()}
           >
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={images[currentIndex]}
               alt={`图片 ${currentIndex + 1}`}
-              width={1920}
-              height={1080}
               className="max-w-full max-h-full w-auto h-auto object-contain select-none"
-              sizes="100vw"
-              priority
             />
           </div>
 
