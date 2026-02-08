@@ -55,3 +55,6 @@ next-env.d.ts
 
 # private ops docs (contains real domain/server info)
 docs/DOMAIN_MIGRATION.md
+
+# deploy script (contains server IP)
+deploy.sh
