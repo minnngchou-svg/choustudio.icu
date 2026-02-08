@@ -147,8 +147,11 @@ cp .env.example .env
 |---|---|---|
 | `NEXT_PUBLIC_SITE_NAME` | 网站名称 | 可不填，后台可改 |
 | `NEXT_PUBLIC_SITE_DOMAIN` | 域名（不含协议） | 用于 Figma 嵌入的 embed-host 参数 |
-| `RESEND_API_KEY` | Resend API Key | 邮件通知功能，不填则跳过邮件 |
-| `EMAIL_FROM` | 发件人邮箱 | 需在 Resend 验证域名后替换 |
+| `SMTP_HOST` | SMTP 服务器地址 | 163 填 `smtp.163.com`，不填则跳过邮件 |
+| `SMTP_PORT` | SMTP 端口 | 通常 `465`（SSL） |
+| `SMTP_USER` | 邮箱账号 | 如 `xxx@163.com` |
+| `SMTP_PASS` | SMTP 授权码 | 邮箱设置中开启 SMTP 后获取 |
+| `EMAIL_FROM` | 发件人邮箱 | 通常与 `SMTP_USER` 一致 |
 
 #### 微信支付变量（完全可选）
 

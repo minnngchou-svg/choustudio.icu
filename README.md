@@ -442,11 +442,15 @@ git clone https://github.com/你的用户名/fanstudio.git
 ### 邮件通知（可选）
 
 配置后，用户购买成功会自动收到邮件（含下载链接）。不配置则跳过邮件，不影响支付流程。
+支持 163、QQ、阿里云等任意 SMTP 邮件服务。
 
 | 变量名 | 填什么 | 说明 |
 |---|---|---|
-| `RESEND_API_KEY` | API Key | 在 [resend.com](https://resend.com) 注册后获取 |
-| `EMAIL_FROM` | 发件人地址 | 需要在 Resend 中验证域名后替换 |
+| `SMTP_HOST` | SMTP 服务器地址 | 163 邮箱填 `smtp.163.com`，QQ 邮箱填 `smtp.qq.com` |
+| `SMTP_PORT` | 端口 | 通常为 `465`（SSL） |
+| `SMTP_USER` | 邮箱账号 | 如 `xxx@163.com` |
+| `SMTP_PASS` | 授权码 | 在邮箱设置中开启 SMTP 后获取（非邮箱密码） |
+| `EMAIL_FROM` | 发件人地址 | 通常与 `SMTP_USER` 一致 |
 
 ---
 

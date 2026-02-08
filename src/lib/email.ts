@@ -1,18 +1,29 @@
-/** 订单/交付邮件发送（Resend）。未配置 RESEND_API_KEY 时静默跳过。 */
-import { Resend } from "resend"
+/** 订单/交付邮件发送（Nodemailer SMTP）。未配置 SMTP_HOST 时静默跳过。 */
+import nodemailer from "nodemailer"
+import type { Transporter } from "nodemailer"
 
-let resendClient: Resend | null = null
+let transporter: Transporter | null = null
 
-function getResend(): Resend | null {
-  const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) return null
-  if (!resendClient) {
-    resendClient = new Resend(apiKey)
+/** 获取或创建 SMTP transporter，未配置则返回 null。 */
+function getTransporter(): Transporter | null {
+  const host = process.env.SMTP_HOST?.trim()
+  if (!host) return null
+
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      host,
+      port: Number(process.env.SMTP_PORT) || 465,
+      secure: (Number(process.env.SMTP_PORT) || 465) === 465,
+      auth: {
+        user: process.env.SMTP_USER || "",
+        pass: process.env.SMTP_PASS || "",
+      },
+    })
   }
-  return resendClient
+  return transporter
 }
 
-const FROM_ADDRESS = process.env.EMAIL_FROM || "onboarding@resend.dev"
+const FROM_ADDRESS = process.env.EMAIL_FROM || process.env.SMTP_USER || ""
 
 interface OrderEmailParams {
   to: string
@@ -28,7 +39,9 @@ interface OrderEmailParams {
 }
 
 /** 解析 data URL 为 Buffer 与 contentType。 */
-function parseDataUrl(dataUrl: string): { buffer: Buffer; contentType: string; ext: string } | null {
+function parseDataUrl(
+  dataUrl: string,
+): { buffer: Buffer; contentType: string; ext: string } | null {
   const match = dataUrl.match(/^data:(image\/(\w+));base64,(.+)$/)
   if (!match) return null
   return {
@@ -40,9 +53,9 @@ function parseDataUrl(dataUrl: string): { buffer: Buffer; contentType: string; e
 
 /** 发送订单确认/交付邮件。 */
 export async function sendOrderEmail(params: OrderEmailParams) {
-  const resend = getResend()
-  if (!resend) {
-    console.log("[Email] RESEND_API_KEY 未配置，跳过发送邮件")
+  const smtp = getTransporter()
+  if (!smtp) {
+    console.log("[Email] SMTP 未配置，跳过发送邮件")
     return
   }
 
@@ -60,31 +73,78 @@ export async function sendOrderEmail(params: OrderEmailParams) {
   } = params
 
   const subject = isFree
-    ? `🎁 ${workTitle} - 资源已就绪`
-    : `✅ ${workTitle} - 购买成功`
+    ? `${workTitle} - 资源已就绪`
+    : `${workTitle} - 购买成功`
 
   const deliverySection = buildDeliverySection(figmaUrl, deliveryUrl)
   const versionText = currentVersion ? ` V${currentVersion}` : ""
 
-  // 处理微信：判断是文字（微信号）还是图片（二维码）
   const isWechatImage = wechat?.startsWith("data:image")
   const wechatSection = buildWechatSection(wechat, isWechatImage)
 
-  // 构建附件列表（Resend 通过 contentId 支持内联图片）
-  const attachments: { filename: string; content: Buffer; content_type: string; contentId: string }[] = []
+  // 构建 Nodemailer 附件（内联图片使用 cid）
+  const attachments: {
+    filename: string
+    content: Buffer
+    contentType: string
+    cid: string
+  }[] = []
   if (wechat && isWechatImage) {
     const parsed = parseDataUrl(wechat)
     if (parsed) {
       attachments.push({
         filename: `wechat-qr.${parsed.ext}`,
         content: parsed.buffer,
-        content_type: parsed.contentType,
-        contentId: "wechat-qr",
+        contentType: parsed.contentType,
+        cid: "wechat-qr",
       })
     }
   }
 
-  const html = `
+  const html = buildHtml({
+    siteName,
+    workTitle,
+    orderNo,
+    isFree,
+    amount,
+    versionText,
+    deliverySection,
+    wechatSection,
+    wechat,
+  })
+
+  try {
+    const result = await smtp.sendMail({
+      from: `${siteName} <${FROM_ADDRESS}>`,
+      to,
+      subject,
+      html,
+      attachments,
+    })
+    console.log("[Email] 邮件已发送:", result.messageId)
+  } catch (err) {
+    console.error("[Email] 发送失败:", err)
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  HTML 模板构建                                                      */
+/* ------------------------------------------------------------------ */
+
+interface HtmlParams {
+  siteName: string
+  workTitle: string
+  orderNo: string
+  isFree: boolean
+  amount?: number
+  versionText: string
+  deliverySection: string
+  wechatSection: string
+  wechat?: string | null
+}
+
+function buildHtml(p: HtmlParams): string {
+  return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -100,7 +160,7 @@ export async function sendOrderEmail(params: OrderEmailParams) {
           <!-- Header -->
           <tr>
             <td style="padding:32px 32px 0;">
-              <p style="margin:0; font-size:13px; color:#737373;">${siteName}</p>
+              <p style="margin:0; font-size:13px; color:#737373;">${p.siteName}</p>
             </td>
           </tr>
 
@@ -108,21 +168,21 @@ export async function sendOrderEmail(params: OrderEmailParams) {
           <tr>
             <td align="center" style="padding:32px 32px 16px;">
               <div style="width:56px; height:56px; border-radius:50%; background-color:#1a2e1a; display:inline-flex; align-items:center; justify-content:center; font-size:28px; line-height:56px;">
-                ${isFree ? "🎁" : "💚"}
+                ${p.isFree ? "🎁" : "💚"}
               </div>
             </td>
           </tr>
           <tr>
             <td align="center" style="padding:0 32px 8px;">
               <h1 style="margin:0; font-size:20px; font-weight:700; color:#fafafa;">
-                ${isFree ? "资源已就绪" : "感谢您的支持"}
+                ${p.isFree ? "资源已就绪" : "感谢您的支持"}
               </h1>
             </td>
           </tr>
           <tr>
             <td align="center" style="padding:0 32px 24px;">
               <p style="margin:0; font-size:14px; color:#a3a3a3;">
-                ${workTitle}${versionText}
+                ${p.workTitle}${p.versionText}
               </p>
             </td>
           </tr>
@@ -135,17 +195,17 @@ export async function sendOrderEmail(params: OrderEmailParams) {
           </tr>
 
           <!-- Order Info (paid only) -->
-          ${!isFree ? `
+          ${!p.isFree ? `
           <tr>
             <td style="padding:20px 32px;">
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="font-size:13px; color:#737373; padding-bottom:8px;">订单号</td>
-                  <td align="right" style="font-size:13px; color:#d4d4d4; padding-bottom:8px; font-family:monospace;">${orderNo}</td>
+                  <td align="right" style="font-size:13px; color:#d4d4d4; padding-bottom:8px; font-family:monospace;">${p.orderNo}</td>
                 </tr>
                 <tr>
                   <td style="font-size:13px; color:#737373;">支付金额</td>
-                  <td align="right" style="font-size:13px; color:#d4d4d4;">¥${amount ?? 0}</td>
+                  <td align="right" style="font-size:13px; color:#d4d4d4;">¥${p.amount ?? 0}</td>
                 </tr>
               </table>
             </td>
@@ -158,17 +218,17 @@ export async function sendOrderEmail(params: OrderEmailParams) {
           ` : ""}
 
           <!-- Delivery Links -->
-          ${deliverySection}
+          ${p.deliverySection}
 
           <!-- WeChat Contact -->
-          ${wechatSection}
+          ${p.wechatSection}
 
           <!-- Footer -->
           <tr>
             <td align="center" style="padding:24px 32px 32px;">
               <p style="margin:0; font-size:12px; color:#525252; line-height:1.6;">
-                ${isFree ? "此邮件确认您已成功获取开源资源。" : "此邮件确认您的购买已完成，请妥善保管。"}
-                ${!wechat ? "<br />如有问题，请回复此邮件联系我们。" : ""}
+                ${p.isFree ? "此邮件确认您已成功获取开源资源。" : "此邮件确认您的购买已完成，请妥善保管。"}
+                ${!p.wechat ? "<br />如有问题，请回复此邮件联系我们。" : ""}
               </p>
             </td>
           </tr>
@@ -179,19 +239,6 @@ export async function sendOrderEmail(params: OrderEmailParams) {
   </table>
 </body>
 </html>`
-
-  try {
-    const result = await resend.emails.send({
-      from: `${siteName} <${FROM_ADDRESS}>`,
-      to,
-      subject,
-      html,
-      ...(attachments.length > 0 && { attachments }),
-    })
-    console.log("[Email] 邮件已发送:", result)
-  } catch (err) {
-    console.error("[Email] 发送失败:", err)
-  }
 }
 
 function buildDeliverySection(
@@ -242,7 +289,6 @@ function buildWechatSection(
   if (!wechat) return ""
 
   if (isImage) {
-    // 二维码图片：附件会以 wechat-qr.jpg 附上，这里用文字提示
     return `
     <tr>
       <td style="padding:0 32px;">
@@ -260,7 +306,6 @@ function buildWechatSection(
     </tr>`
   }
 
-  // 纯文字微信号
   return `
   <tr>
     <td style="padding:0 32px;">
