@@ -7,6 +7,7 @@ import { CardDescriptionHtml } from "@/components/frontend/CardDescriptionHtml"
 import { contentToHtml, jsonToPlainText } from "@/lib/render-content"
 import { defaultNav } from "@/lib/nav-config"
 import { defaultPersonalName, defaultSiteName } from "@/lib/page-copy"
+import { ProseImageLightbox } from "@/components/frontend/ProseImageLightbox"
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>
@@ -103,34 +104,37 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
         {(contentHtml || bodyPlain) && (
           <div className="min-w-0 overflow-x-hidden">
-            <div
-              className="prose prose-neutral dark:prose-invert prose-lg max-w-none
-                prose-headings:font-serif prose-headings:text-foreground prose-headings:font-semibold prose-headings:tracking-tight
-                prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
-                prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
-                prose-p:text-foreground/70 prose-p:leading-relaxed
-                prose-li:text-foreground/70
-                prose-strong:text-foreground
-                prose-theme prose-a:no-underline hover:prose-a:underline
-                prose-code:bg-accent prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
-                prose-pre:bg-accent prose-pre:border prose-pre:border-border
-                prose-blockquote:text-muted-foreground
-                prose-img:rounded-lg prose-img:my-4
-                prose-mark:bg-yellow-200/80 prose-mark:dark:bg-yellow-900/40
-                [&_.tiptap-img]:rounded-lg
-                [&_figure]:my-6 [&_figure]:overflow-hidden [&_figure_img]:my-0 [&_figcaption]:text-center [&_figcaption]:text-sm [&_figcaption]:text-muted-foreground [&_figcaption]:mt-2
-                [&_.checklist]:list-none [&_.checklist]:pl-0 [&_.checklist_li]:flex [&_.checklist_li]:items-start [&_.checklist_li]:gap-2
-                [&_img]:max-w-full [&_img]:h-auto [&_img]:object-contain [&_img]:rounded-lg
-              "
-            >
-            {contentHtml ? (
-              <div dangerouslySetInnerHTML={{ __html: contentHtml }} />
-            ) : (
-              bodyPlain.split("\n").map((line, i) => (
-                <p key={i}>{line || "\u00A0"}</p>
-              ))
-            )}
-            </div>
+            <ProseImageLightbox>
+              <div
+                className="prose prose-neutral dark:prose-invert prose-lg max-w-none
+                  prose-headings:font-serif prose-headings:text-foreground prose-headings:font-semibold prose-headings:tracking-tight
+                  prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
+                  prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
+                  prose-p:text-foreground/70 prose-p:leading-relaxed
+                  prose-li:text-foreground/70
+                  prose-strong:text-foreground
+                  prose-theme prose-a:no-underline hover:prose-a:underline
+                  prose-code:bg-accent prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
+                  prose-pre:bg-accent prose-pre:border prose-pre:border-border
+                  prose-blockquote:text-muted-foreground
+                  prose-img:rounded-lg prose-img:my-4
+                  prose-mark:bg-yellow-200/80 prose-mark:dark:bg-yellow-900/40
+                  [&_.tiptap-img]:rounded-lg
+                  [&_figure]:my-6 [&_figure]:overflow-hidden [&_figure]:!max-w-full [&_figure_img]:my-0 [&_figcaption]:text-center [&_figcaption]:text-sm [&_figcaption]:text-muted-foreground [&_figcaption]:mt-2
+                  [&_.checklist]:list-none [&_.checklist]:pl-0 [&_.checklist_li]:flex [&_.checklist_li]:items-start [&_.checklist_li]:gap-2
+                  [&_img]:!max-w-full [&_img]:h-auto [&_img]:object-contain [&_img]:rounded-lg
+                  [&_video]:!max-w-full [&_video]:h-auto [&_video]:rounded-lg
+                "
+              >
+              {contentHtml ? (
+                <div dangerouslySetInnerHTML={{ __html: contentHtml }} />
+              ) : (
+                bodyPlain.split("\n").map((line, i) => (
+                  <p key={i}>{line || "\u00A0"}</p>
+                ))
+              )}
+              </div>
+            </ProseImageLightbox>
           </div>
         )}
 

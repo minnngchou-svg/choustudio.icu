@@ -179,7 +179,9 @@ function blockToHtml(block: BNBlock): string {
       const alt = (props.caption ?? props.alt ?? "") as string
       // BlockNote 用 previewWidth 存储用户调整后的像素宽度
       const pw = props.previewWidth ?? props.width
-      const imgStyle = pw ? ` style="width: ${Number(pw)}px"` : ""
+      const imgStyle = pw
+        ? ` style="width: ${Number(pw)}px; max-width: 100%"`
+        : ""
       if (!src) return kids
       let html = `<img src="${esc(src)}" alt="${esc(alt)}"${imgStyle} />`
       if (alt) html += `<figcaption>${esc(alt)}</figcaption>`
@@ -189,7 +191,9 @@ function blockToHtml(block: BNBlock): string {
     case "video": {
       const src = (props.url ?? "") as string
       const pw = props.previewWidth ?? props.width
-      const vidStyle = pw ? ` style="width: ${Number(pw)}px"` : ""
+      const vidStyle = pw
+        ? ` style="width: ${Number(pw)}px; max-width: 100%"`
+        : ""
       if (!src) return kids
       return `<video controls${vidStyle} src="${esc(src)}"></video>${kids}`
     }
