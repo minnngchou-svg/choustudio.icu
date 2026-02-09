@@ -99,7 +99,7 @@ export default function HomePage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const articles = posts.slice(0, 6).map((p) => ({
+  const articles = posts.slice(0, 4).map((p) => ({
     title: p.title,
     excerpt: p.excerpt ?? null,
     coverImage: p.coverImage ?? null,
@@ -133,19 +133,19 @@ export default function HomePage() {
       <WorksGridSection
         title={designTitle}
         allLinkHref="/works/design"
-        works={designWorks.slice(0, 6)}
+        works={designWorks.slice(0, 4)}
         fallbackIcon="ri-palette-line"
         loading={loading}
       />
       <WorksGridSection
         title={devTitle}
         allLinkHref="/works/development"
-        works={devWorks.slice(0, 6)}
+        works={devWorks.slice(0, 4)}
         fallbackIcon="ri-code-s-slash-line"
         loading={loading}
       />
       <NotesSection title={notesTitle} articles={articles} loading={loading} />
-      <TutorialsSection title={tutorialsTitle} items={tutorials.slice(0, 6)} loading={loading} />
+      <TutorialsSection title={tutorialsTitle} items={tutorials.slice(0, 4)} loading={loading} />
       <FooterSection
         settings={settings}
         logoText={footerLogoText}
