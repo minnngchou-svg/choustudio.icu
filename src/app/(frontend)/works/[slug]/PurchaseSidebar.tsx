@@ -664,7 +664,7 @@ export function PurchaseSidebar({
                       </h3>
                       {!isFree && orderNo && (
                         <p className="text-sm text-muted-foreground">
-                          订单号: {orderNo}
+                          赞助编号: {orderNo}
                         </p>
                       )}
                     </div>
@@ -703,7 +703,7 @@ export function PurchaseSidebar({
                           请妥善保管您的邮箱，后续可通过邮箱查询赞助记录。
                         </p>
                         <p className="text-xs text-muted-foreground text-center">
-                          如需退款或有其他疑问，请联系范米花儿。
+                          如需返还或有其他疑问，请联系范米花儿。
                         </p>
                       </>
                     )}
@@ -715,7 +715,7 @@ export function PurchaseSidebar({
                       <i className="ri-time-line text-amber-500 text-xl" />
                       <div>
                         <p className="text-sm font-medium text-foreground">等待支付</p>
-                        <p className="text-xs text-muted-foreground">订单号: {orderNo}</p>
+                        <p className="text-xs text-muted-foreground">赞助编号: {orderNo}</p>
                       </div>
                     </div>
 
@@ -868,12 +868,20 @@ export function PurchaseSidebar({
                         className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
                         disabled={loading}
                       />
-                      <p className="text-xs text-muted-foreground/70 leading-relaxed">
-                        本站为个人网站，不提供账户系统与在线订单查询。邮件将作为您获取资源的唯一凭证，请务必填写常用邮箱。
-                      </p>
-                      <p className="text-xs text-muted-foreground/70 leading-relaxed">
-                        赞助后不支持自助退款，如需退款或有其他疑问，请联系范米花儿。
-                      </p>
+                      {isFree ? (
+                        <p className="text-xs text-muted-foreground/70 leading-relaxed">
+                          邮件将作为您获取资源的凭证，请填写常用邮箱。
+                        </p>
+                      ) : (
+                        <>
+                          <p className="text-xs text-muted-foreground/70 leading-relaxed">
+                            本站为个人网站，不提供账户系统与在线查询。邮件将作为您获取资源的唯一凭证，请务必填写常用邮箱。
+                          </p>
+                          <p className="text-xs text-muted-foreground/70 leading-relaxed">
+                            赞助后不支持自助返还，如需返还或有其他疑问，请联系范米花儿。
+                          </p>
+                        </>
+                      )}
                     </div>
                     {buyError && (
                       <div className="rounded-lg bg-destructive/10 text-destructive px-3 py-2 text-sm">{buyError}</div>

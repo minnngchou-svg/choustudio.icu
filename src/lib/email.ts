@@ -144,7 +144,7 @@ export async function sendRefundEmail(params: RefundEmailParams) {
     return
   }
   const { to, siteName, workTitle, orderNo, amount } = params
-  const subject = `${workTitle} - 订单已退款`
+  const subject = `${workTitle} - 赞助已返还`
   const html = buildRefundHtml({ siteName, workTitle, orderNo, amount })
   try {
     const result = await smtp.sendMail({
@@ -189,7 +189,7 @@ function buildRefundHtml(p: {
           </tr>
           <tr>
             <td align="center" style="padding:0 32px 8px;">
-              <h1 style="margin:0; font-size:20px; font-weight:700; color:#fafafa;">订单已退款</h1>
+              <h1 style="margin:0; font-size:20px; font-weight:700; color:#fafafa;">赞助已返还</h1>
             </td>
           </tr>
           <tr>
@@ -204,8 +204,8 @@ function buildRefundHtml(p: {
           </tr>
           <tr>
             <td style="padding:20px 32px 32px;">
-              <p style="margin:0 0 8px; font-size:13px; color:#737373;">订单号 ${p.orderNo}</p>
-              <p style="margin:0; font-size:18px; font-weight:600; color:#fafafa;">退款金额 ￥${p.amount.toFixed(2)}</p>
+              <p style="margin:0 0 8px; font-size:13px; color:#737373;">赞助编号 ${p.orderNo}</p>
+              <p style="margin:0; font-size:18px; font-weight:600; color:#fafafa;">返还金额 ￥${p.amount.toFixed(2)}</p>
               <p style="margin:12px 0 0; font-size:13px; color:#a3a3a3;">款项将原路退回，到账时间以支付渠道为准。如有疑问请联系范米花儿。</p>
             </td>
           </tr>
@@ -290,7 +290,7 @@ function buildHtml(p: HtmlParams): string {
             <td style="padding:20px 32px;">
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="font-size:13px; color:#737373; padding-bottom:8px;">订单号</td>
+                  <td style="font-size:13px; color:#737373; padding-bottom:8px;">赞助编号</td>
                   <td align="right" style="font-size:13px; color:#d4d4d4; padding-bottom:8px; font-family:monospace;">${p.orderNo}</td>
                 </tr>
                 <tr>
