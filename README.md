@@ -7,9 +7,9 @@
 **在线演示：** [https://studio.fanyunyun.fun](https://studio.fanyunyun.fun)  
 **后台入口：** [https://studio.fanyunyun.fun/admin](https://studio.fanyunyun.fun/admin)
 
-> **体验后台：** 使用上方后台链接登录，邮箱 `demo@example.com` / 密码 `demo123`（只读，可浏览所有功能）
->
-> 管理员账号：`admin@example.com` / 密码 `admin123`（登录后请及时修改密码）
+> **体验后台：** 使用上方后台链接登录，邮箱 `demo@example.com` / 密码 `demo123`（只读，可浏览所有功能）。
+
+若你**自行克隆并运行本项目**，执行 `npm run db:seed` 后会创建默认管理员：邮箱 `admin@example.com` / 密码 `admin123`，首次登录后请立即修改密码。
 
 ![前台首页](docs/screenshots/前台首页.png)
 
