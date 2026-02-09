@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { requireAdmin } from "@/lib/require-admin"
 import prisma from "@/lib/prisma"
 import { sendOrderEmail } from "@/lib/email"
 import { normalizeSiteName } from "@/lib/page-copy"
@@ -15,10 +15,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "此接口仅限开发环境使用" }, { status: 403 })
   }
 
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "未登录" }, { status: 401 })
-  }
+  const check = await requireAdmin()
+  if (!check.authorized) return check.response
 
   const { orderNo } = await request.json()
 

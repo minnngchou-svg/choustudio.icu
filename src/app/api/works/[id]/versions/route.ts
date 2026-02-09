@@ -12,7 +12,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth()
-  const isAdmin = !!session?.user?.id
+  const isAdmin = (session?.user as { role?: string })?.role === "ADMIN"
   const { id } = await params
   const versions = await prisma.workVersion.findMany({
     where: { workId: id },

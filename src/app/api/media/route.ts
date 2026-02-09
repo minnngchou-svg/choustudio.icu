@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { WorkType } from "@prisma/client"
-import { auth } from "@/lib/auth"
 import { requireAdmin } from "@/lib/require-admin"
 import prisma from "@/lib/prisma"
 import {
@@ -25,10 +24,8 @@ function isEntityType(s: string): s is MediaEntityType {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "未登录" }, { status: 401 })
-    }
+    const check = await requireAdmin()
+    if (!check.authorized) return check.response
 
     const { searchParams } = new URL(request.url)
     const entityType = searchParams.get("entityType")

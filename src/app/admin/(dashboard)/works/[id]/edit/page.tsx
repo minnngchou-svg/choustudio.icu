@@ -81,6 +81,7 @@ export default function EditWorkPage() {
   const [saving, setSaving] = useState(false)
   const [currentStatus, setCurrentStatus] = useState<"DRAFT" | "PUBLISHED">("DRAFT")
   const [originalSlug, setOriginalSlug] = useState("")
+  const [deliveryRedacted, setDeliveryRedacted] = useState(false)
   const fetchedRef = useRef(false)
 
   useEffect(() => {
@@ -92,6 +93,7 @@ export default function EditWorkPage() {
         return r.json()
       })
       .then(async (work) => {
+        setDeliveryRedacted(!!work._deliveryRedacted)
         setTitle(work.title ?? "")
         setSlug(work.slug ?? "")
         setOriginalSlug(work.slug ?? "")
@@ -767,15 +769,21 @@ export default function EditWorkPage() {
                               <div className="flex-1 min-w-0 space-y-0.5">
                                 <div className="flex items-center gap-2 text-sm flex-wrap">
                                   <span className="font-medium">¥{v.price}</span>
-                                  {v.figmaUrl && (
-                                    <button type="button" className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer" title={`复制: ${v.figmaUrl}`} onClick={() => { navigator.clipboard.writeText(v.figmaUrl!); toast.success("Figma 链接已复制") }}>
-                                      <i className="ri-figma-line" />Figma<i className="ri-file-copy-line text-[10px] opacity-60" />
-                                    </button>
-                                  )}
-                                  {v.deliveryUrl && (
-                                    <button type="button" className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer" title={`复制: ${v.deliveryUrl}`} onClick={() => { navigator.clipboard.writeText(v.deliveryUrl!); toast.success("自定义链接已复制") }}>
-                                      <i className="ri-links-line" />自定义<i className="ri-file-copy-line text-[10px] opacity-60" />
-                                    </button>
+                                  {deliveryRedacted ? (
+                                    <span className="text-xs text-muted-foreground">无权限查看交付链接</span>
+                                  ) : (
+                                    <>
+                                      {v.figmaUrl && (
+                                        <button type="button" className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer" title={`复制: ${v.figmaUrl}`} onClick={() => { navigator.clipboard.writeText(v.figmaUrl!); toast.success("Figma 链接已复制") }}>
+                                          <i className="ri-figma-line" />Figma<i className="ri-file-copy-line text-[10px] opacity-60" />
+                                        </button>
+                                      )}
+                                      {v.deliveryUrl && (
+                                        <button type="button" className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer" title={`复制: ${v.deliveryUrl}`} onClick={() => { navigator.clipboard.writeText(v.deliveryUrl!); toast.success("自定义链接已复制") }}>
+                                          <i className="ri-links-line" />自定义<i className="ri-file-copy-line text-[10px] opacity-60" />
+                                        </button>
+                                      )}
+                                    </>
                                   )}
                                 </div>
                                 {v.changelog && (
@@ -808,15 +816,21 @@ export default function EditWorkPage() {
                   <CardTitle className="flex items-center gap-2">交付链接</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-5">
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-1.5 text-muted-foreground"><i className="ri-figma-line text-base" />Figma 链接</Label>
-                    <Input disabled value={figmaUrl} placeholder="根据最新版本自动继承" />
-                  </div>
-                  <Separator />
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-1.5 text-muted-foreground"><i className="ri-links-line text-base" />自定义链接</Label>
-                    <Input disabled value={deliveryUrl} placeholder="根据最新版本自动继承" />
-                  </div>
+                  {deliveryRedacted ? (
+                    <p className="text-sm text-muted-foreground py-2">无权限查看交付链接</p>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-1.5 text-muted-foreground"><i className="ri-figma-line text-base" />Figma 链接</Label>
+                        <Input disabled value={figmaUrl} placeholder="根据最新版本自动继承" />
+                      </div>
+                      <Separator />
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-1.5 text-muted-foreground"><i className="ri-links-line text-base" />自定义链接</Label>
+                        <Input disabled value={deliveryUrl} placeholder="根据最新版本自动继承" />
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </div>

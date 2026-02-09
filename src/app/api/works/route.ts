@@ -13,6 +13,8 @@ export async function GET(request: NextRequest) {
   const all = searchParams.get("all") === "1"
   const typeParam = searchParams.get("type")
 
+  const isAdminRole = (session?.user as { role?: string })?.role === "ADMIN"
+
   if (slug) {
     const work = await prisma.work.findUnique({
       where: { slug },
@@ -21,7 +23,7 @@ export async function GET(request: NextRequest) {
     if (!work) {
       return NextResponse.json({ error: "Not found" }, { status: 404 })
     }
-    if (work.status !== "PUBLISHED" && !session?.user?.id) {
+    if (work.status !== "PUBLISHED" && !isAdminRole) {
       return NextResponse.json({ error: "Not found" }, { status: 404 })
     }
     const row = {
@@ -29,10 +31,10 @@ export async function GET(request: NextRequest) {
       price: work.price ? Number(work.price) : null,
       images: (work.images as string[]) || [],
     }
-    return NextResponse.json(session?.user?.id ? row : sanitizeWorkForPublic(row))
+    return NextResponse.json(isAdminRole ? row : sanitizeWorkForPublic(row))
   }
 
-  const isAdmin = !!session?.user?.id
+  const isAdmin = isAdminRole
   const workTypeFilter =
     typeParam === "design"
       ? "DESIGN"

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { randomBytes } from "crypto"
-import { auth } from "@/lib/auth"
 import { requireAdmin } from "@/lib/require-admin"
 import prisma from "@/lib/prisma"
 import { sendOrderEmail, sendRefundEmail } from "@/lib/email"
@@ -10,15 +9,13 @@ import { createWxPayFromConfig } from "@/lib/wechatpay"
 
 export const dynamic = "force-dynamic"
 
-/** GET: 管理员查看订单详情（需登录）。 */
+/** GET: 管理员查看订单详情。仅 ADMIN 可访问，VIEWER 返回 403。 */
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "未登录" }, { status: 401 })
-  }
+  const check = await requireAdmin()
+  if (!check.authorized) return check.response
   const { id } = await params
   const order = await prisma.order.findUnique({
     where: { id },

@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
   const slug = searchParams.get("slug")
   const all = searchParams.get("all") === "1"
 
+  const isAdminRole = (session?.user as { role?: string })?.role === "ADMIN"
+
   if (slug) {
     const post = await prisma.post.findUnique({
       where: { slug },
@@ -19,13 +21,13 @@ export async function GET(request: NextRequest) {
     if (!post) {
       return NextResponse.json({ error: "Not found" }, { status: 404 })
     }
-    if (post.status !== "PUBLISHED" && !session?.user?.id) {
+    if (post.status !== "PUBLISHED" && !isAdminRole) {
       return NextResponse.json({ error: "Not found" }, { status: 404 })
     }
     return NextResponse.json(post)
   }
 
-  const isAdmin = !!session?.user?.id
+  const isAdmin = isAdminRole
   const list = await prisma.post.findMany({
     where: isAdmin && all ? undefined : { status: "PUBLISHED" },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],

@@ -47,6 +47,8 @@ interface DashboardContentProps {
   stats: DashboardStats
   recentOrders: RecentOrder[]
   dailyRevenue: DailyRevenue[]
+  /** 为 true 时在「最近订单」区块显示无权限提示（如体验账户） */
+  orderBlockForbidden?: boolean
 }
 
 const quickActions = [
@@ -163,6 +165,7 @@ export default function DashboardContent({
   stats,
   recentOrders,
   dailyRevenue,
+  orderBlockForbidden = false,
 }: DashboardContentProps) {
   const [chartMounted, setChartMounted] = useState(false)
 
@@ -357,7 +360,9 @@ export default function DashboardContent({
           </Link>
         </div>
 
-        {recentOrders.length === 0 ? (
+        {orderBlockForbidden ? (
+          <div className="p-5 text-center text-sm text-muted-foreground">无权限查看订单</div>
+        ) : recentOrders.length === 0 ? (
           <div className="p-5 text-center text-sm text-muted-foreground">暂无订单</div>
         ) : (
           <div className="p-5">

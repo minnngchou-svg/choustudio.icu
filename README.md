@@ -4,9 +4,10 @@
 
 所有文字、颜色、内容都能在后台图形界面里修改，**不需要写任何代码**。自适应手机 / 平板 / 电脑，内置亮色 / 暗色自动切换。
 
-**在线演示：** [https://studio.fanyunyun.fun](https://studio.fanyunyun.fun)
+**在线演示：** [https://studio.fanyunyun.fun](https://studio.fanyunyun.fun)  
+**后台入口：** [https://studio.fanyunyun.fun/admin](https://studio.fanyunyun.fun/admin)
 
-> **体验后台：** 邮箱 `demo@example.com` / 密码 `demo123`（只读，可浏览所有功能）
+> **体验后台：** 使用上方后台链接登录，邮箱 `demo@example.com` / 密码 `demo123`（只读，可浏览所有功能）
 >
 > 管理员账号：`admin@example.com` / 密码 `admin123`（登录后请及时修改密码）
 

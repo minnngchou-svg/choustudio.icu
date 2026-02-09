@@ -18,7 +18,8 @@ export async function GET(
   if (!post) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
-  if (post.status !== "PUBLISHED" && !session?.user?.id) {
+  const isAdminRole = (session?.user as { role?: string })?.role === "ADMIN"
+  if (post.status !== "PUBLISHED" && !isAdminRole) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
   return NextResponse.json(post)

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { randomBytes } from "crypto"
-import { auth } from "@/lib/auth"
+import { requireAdmin } from "@/lib/require-admin"
 import prisma from "@/lib/prisma"
 import { sendOrderEmail } from "@/lib/email"
 import { normalizeSiteName } from "@/lib/page-copy"
@@ -136,16 +136,14 @@ export async function POST(request: NextRequest) {
   })
 }
 
-/** GET: ?orderNo= 查单笔；?all=1 管理员查全部（需登录）。 */
+/** GET: ?orderNo= 查单笔；?all=1 管理员查全部。仅 ADMIN 可访问，VIEWER 返回 403。 */
 export async function GET(request: NextRequest) {
+  const check = await requireAdmin()
+  if (!check.authorized) return check.response
+
   const { searchParams } = new URL(request.url)
   const orderNo = searchParams.get("orderNo")
   const all = searchParams.get("all") === "1"
-
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "未登录" }, { status: 401 })
-  }
 
   if (orderNo) {
     const order = await prisma.order.findUnique({

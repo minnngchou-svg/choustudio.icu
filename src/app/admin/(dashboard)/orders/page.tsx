@@ -47,6 +47,7 @@ const statusMap: Record<string, { label: string; variant: "default" | "secondary
 export default function OrdersPage() {
   const [orders, setOrders] = useState<OrderItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [forbiddenMessage, setForbiddenMessage] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<{
     orderId: string
@@ -106,9 +107,17 @@ export default function OrdersPage() {
 
   function fetchOrders() {
     setLoading(true)
+    setForbiddenMessage(null)
     fetch("/api/orders?all=1", { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => setOrders(Array.isArray(data) ? data : []))
+      .then(async (r) => {
+        const data = await r.json()
+        if (r.status === 403) {
+          setForbiddenMessage(typeof data?.error === "string" ? data.error : "无权限查看订单")
+          setOrders([])
+        } else {
+          setOrders(Array.isArray(data) ? data : [])
+        }
+      })
       .catch(() => setOrders([]))
       .finally(() => setLoading(false))
   }
@@ -202,6 +211,8 @@ export default function OrdersPage() {
           <TableBody>
             {loading ? (
               <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">加载中…</TableCell></TableRow>
+            ) : forbiddenMessage ? (
+              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">{forbiddenMessage}</TableCell></TableRow>
             ) : tc.pagedData.length === 0 ? (
               <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">暂无订单</TableCell></TableRow>
             ) : (

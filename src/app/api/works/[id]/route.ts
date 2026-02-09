@@ -19,7 +19,8 @@ export async function GET(
   if (!work) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
-  if (work.status !== "PUBLISHED" && !session?.user?.id) {
+  const isAdminRole = (session?.user as { role?: string })?.role === "ADMIN"
+  if (work.status !== "PUBLISHED" && !isAdminRole) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
   const row = {
@@ -27,7 +28,11 @@ export async function GET(
     price: work.price ? Number(work.price) : null,
     images: (work.images as string[]) || [],
   }
-  return NextResponse.json(session?.user?.id ? row : sanitizeWorkForPublic(row))
+  if (isAdminRole) return NextResponse.json(row)
+  return NextResponse.json({
+    ...sanitizeWorkForPublic(row),
+    _deliveryRedacted: true,
+  })
 }
 
 export async function PUT(

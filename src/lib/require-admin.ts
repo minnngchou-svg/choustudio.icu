@@ -22,7 +22,7 @@ export async function requireAdmin(): Promise<AuthResult> {
     return {
       authorized: false,
       response: NextResponse.json(
-        { error: "体验账户仅可查看，无法修改" },
+        { error: "无权限查看或修改（体验账户仅可浏览界面）" },
         { status: 403 },
       ),
     }
