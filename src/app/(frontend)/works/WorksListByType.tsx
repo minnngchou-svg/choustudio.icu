@@ -8,6 +8,7 @@ import { CardDescriptionHtml } from "@/components/frontend/CardDescriptionHtml"
 import { defaultNav } from "@/lib/nav-config"
 import { defaultPageCopy, defaultSiteName } from "@/lib/page-copy"
 import { useNavConfig } from "@/hooks/useNavConfig"
+import { coverRatioToCss } from "@/lib/cover-ratio"
 
 type Work = {
   id: string
@@ -38,6 +39,10 @@ export function WorksListByType({
   const sectionDesc =
     pageCopy[descKey] ??
     (type === "design" ? (defaultPageCopy.worksDesignDesc ?? "") : (defaultPageCopy.worksDevDesc ?? ""))
+  const moduleCoverRatio =
+    type === "design"
+      ? pageCopy.coverRatioWorksDesign
+      : pageCopy.coverRatioWorksDev
   const [works, setWorks] = useState<Work[]>([])
   const [loading, setLoading] = useState(true)
   const fallbackIcon = type === "design" ? "ri-palette-line" : "ri-code-s-slash-line"
@@ -94,7 +99,10 @@ export function WorksListByType({
             <FadeContent key={work.id} delay={0.1 + index * 0.05} className="break-inside-avoid mb-5">
               <Link href={`/works/${work.slug}`} className="block transition-transform duration-300 hover:scale-[1.1]">
                 <GlowBorder className="group rounded-xl overflow-hidden border border-border/50 bg-card/50 backdrop-blur-sm flex flex-col">
-                  <div className="aspect-[3/4] overflow-hidden bg-muted shrink-0 relative">
+                  <div
+                    className="overflow-hidden bg-muted shrink-0 relative"
+                    style={{ aspectRatio: coverRatioToCss(moduleCoverRatio) }}
+                  >
                     <CoverImage src={work.coverImage} alt={work.title} fallbackIcon={fallbackIcon} />
                     {work.isFree && (
                       <span className="absolute top-2 left-2 z-10 text-xs font-medium px-2.5 py-1 rounded-md bg-emerald-500/90 text-white backdrop-blur-sm">

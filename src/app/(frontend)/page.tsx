@@ -15,6 +15,7 @@ import { HoverPopover } from "@/components/ui/hover-popover"
 import { CoverImage } from "@/components/frontend/CoverImage"
 import type { AboutModules } from "@/lib/about-types"
 import { APP_AUTHOR, APP_VERSION, type FooterConfig } from "@/lib/version"
+import { coverRatioToCss } from "@/lib/cover-ratio"
 
 type PageCopy = {
   heroGreeting?: string
@@ -113,6 +114,10 @@ export default function HomePage() {
   const devTitle = nav.worksDev ?? defaultNav.worksDev ?? ""
   const notesTitle = nav.blog ?? defaultNav.blog ?? ""
   const tutorialsTitle = nav.tutorials ?? defaultNav.tutorials ?? ""
+  const designCoverRatio = pageCopy.coverRatioWorksDesign
+  const devCoverRatio = pageCopy.coverRatioWorksDev
+  const blogCoverRatio = pageCopy.coverRatioBlog
+  const tutorialsCoverRatio = pageCopy.coverRatioTutorials
   const footerLogoText = (nav.logoText ?? defaultNav.logoText ?? "").trim() || (defaultNav.logoText ?? "")
   const heroDisplayName =
     settings?.siteName ??
@@ -135,6 +140,7 @@ export default function HomePage() {
         allLinkHref="/works/design"
         works={designWorks.slice(0, 4)}
         fallbackIcon="ri-palette-line"
+        coverRatio={designCoverRatio}
         loading={loading}
       />
       <WorksGridSection
@@ -142,10 +148,11 @@ export default function HomePage() {
         allLinkHref="/works/development"
         works={devWorks.slice(0, 4)}
         fallbackIcon="ri-code-s-slash-line"
+        coverRatio={devCoverRatio}
         loading={loading}
       />
-      <NotesSection title={notesTitle} articles={articles} loading={loading} />
-      <TutorialsSection title={tutorialsTitle} items={tutorials.slice(0, 4)} loading={loading} />
+      <NotesSection title={notesTitle} articles={articles} coverRatio={blogCoverRatio} loading={loading} />
+      <TutorialsSection title={tutorialsTitle} items={tutorials.slice(0, 4)} coverRatio={tutorialsCoverRatio} loading={loading} />
       <FooterSection
         settings={settings}
         logoText={footerLogoText}
@@ -372,9 +379,11 @@ function SkeletonCard() {
 
 function SkeletonGrid({ count = 4 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+    <div className="grid grid-cols-2 md:grid-cols-6 gap-5">
       {Array.from({ length: count }).map((_, i) => (
-        <SkeletonCard key={i} />
+        <div key={i} className={i === 0 ? "col-span-2 md:col-span-3" : "col-span-1"}>
+          <SkeletonCard />
+        </div>
       ))}
     </div>
   )
@@ -385,12 +394,14 @@ function WorksGridSection({
   allLinkHref,
   works,
   fallbackIcon,
+  coverRatio,
   loading,
 }: {
   title: string
   allLinkHref: string
   works: WorkItem[]
   fallbackIcon: string
+  coverRatio?: string
   loading?: boolean
 }) {
   return (
@@ -402,12 +413,19 @@ function WorksGridSection({
       ) : works.length === 0 ? (
         <p className="text-muted-foreground text-sm py-4">暂无{title}</p>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-5">
           {works.map((work, index) => (
-            <FadeContent key={work.id} delay={0.1 + index * 0.05}>
+            <FadeContent
+              key={work.id}
+              delay={0.1 + index * 0.05}
+              className={index === 0 ? "col-span-2 md:col-span-3" : "col-span-1"}
+            >
               <Link href={`/works/${work.slug}`} className="block transition-transform duration-300 hover:scale-[1.1]">
                 <GlowBorder className="group rounded-xl overflow-hidden border border-border/50 bg-card/50 backdrop-blur-sm flex flex-col">
-                  <div className="aspect-[3/4] overflow-hidden bg-muted shrink-0 relative">
+                  <div
+                    className="overflow-hidden bg-muted shrink-0 relative"
+                    style={{ aspectRatio: coverRatioToCss(coverRatio) }}
+                  >
                     <CoverImage src={work.coverImage} alt={work.title} fallbackIcon={fallbackIcon} />
                     {work.isFree && (
                       <span className="absolute top-2 left-2 z-10 text-xs font-medium px-2.5 py-1 rounded-md bg-emerald-500/90 text-white backdrop-blur-sm">
@@ -451,10 +469,12 @@ function WorksGridSection({
 function NotesSection({
   title,
   articles,
+  coverRatio,
   loading,
 }: {
   title: string
   articles: { title: string; excerpt: string | null; coverImage: string | null; date: string; slug: string; category?: { name: string } | null; tags?: TagItem[] }[]
+  coverRatio?: string
   loading?: boolean
 }) {
   return (
@@ -466,12 +486,19 @@ function NotesSection({
       ) : articles.length === 0 ? (
         <p className="text-muted-foreground text-sm py-4">暂无{title}</p>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-5">
           {articles.map((article, index) => (
-            <FadeContent key={article.slug} delay={0.1 + index * 0.05}>
+            <FadeContent
+              key={article.slug}
+              delay={0.1 + index * 0.05}
+              className={index === 0 ? "col-span-2 md:col-span-3" : "col-span-1"}
+            >
               <Link href={`/blog/${article.slug}`} className="block transition-transform duration-300 hover:scale-[1.1]">
                 <GlowBorder className="group rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden flex flex-col">
-                  <div className="aspect-[3/4] overflow-hidden bg-muted shrink-0">
+                  <div
+                    className="overflow-hidden bg-muted shrink-0"
+                    style={{ aspectRatio: coverRatioToCss(coverRatio) }}
+                  >
                     <CoverImage src={article.coverImage} alt={article.title} fallbackIcon="ri-article-line" />
                   </div>
                   <div className="p-4 flex-1">
@@ -512,10 +539,12 @@ function NotesSection({
 function TutorialsSection({
   title,
   items,
+  coverRatio,
   loading,
 }: {
   title: string
   items: TutorialItem[]
+  coverRatio?: string
   loading?: boolean
 }) {
   const playOverlay = (
@@ -533,12 +562,19 @@ function TutorialsSection({
       ) : items.length === 0 ? (
         <p className="text-muted-foreground text-sm py-4">暂无{title}</p>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-5">
           {items.map((item, index) => (
-            <FadeContent key={item.id} delay={0.1 + index * 0.05}>
+            <FadeContent
+              key={item.id}
+              delay={0.1 + index * 0.05}
+              className={index === 0 ? "col-span-2 md:col-span-3" : "col-span-1"}
+            >
               <a href={item.videoUrl} target="_blank" rel="noopener noreferrer" className="block transition-transform duration-300 hover:scale-[1.1]">
                 <GlowBorder className="group rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden flex flex-col">
-                  <div className="aspect-[3/4] overflow-hidden bg-muted relative shrink-0">
+                  <div
+                    className="overflow-hidden bg-muted relative shrink-0"
+                    style={{ aspectRatio: coverRatioToCss(coverRatio) }}
+                  >
                     <CoverImage src={item.thumbnail} alt={item.title} fallbackIcon="ri-video-line" />
                     {playOverlay}
                   </div>

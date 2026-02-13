@@ -23,7 +23,7 @@ export function CoverImageUpload({
   entityType,
   entityId,
   aspectRatio = "3/4",
-  recommendText = "推荐 3:4 比例，如 720x960",
+  recommendText = "建议按当前比例上传，如 1200x1600",
 }: CoverImageUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState("")
@@ -85,12 +85,14 @@ export function CoverImageUpload({
     e.preventDefault()
   }
 
+  const hintText = `${recommendText} · 支持 JPG/PNG/WebP/GIF · 最大 5MB`
+
   // 有封面图 — 预览模式
   if (value) {
     return (
-      <div className="space-y-2 max-w-[240px]">
+      <div className="space-y-2 w-full">
         <div
-          className="relative overflow-hidden rounded-xl border border-border/50 bg-muted/30 group"
+          className="relative w-full overflow-hidden rounded-xl border border-border/50 bg-muted/30 group"
           style={{ aspectRatio }}
         >
           <img
@@ -125,6 +127,7 @@ export function CoverImageUpload({
           className="hidden"
           onChange={handleFileChange}
         />
+        <p className="text-xs text-muted-foreground/70">{hintText}</p>
         {error && <p className="text-xs text-destructive">{error}</p>}
       </div>
     )
@@ -132,10 +135,10 @@ export function CoverImageUpload({
 
   // 无封面图 — 上传区域
   return (
-    <div className="space-y-2 max-w-[240px]">
+    <div className="space-y-2 w-full">
       <div
         className={`
-          relative overflow-hidden rounded-xl border-2 border-dashed
+          relative w-full overflow-hidden rounded-xl border-2 border-dashed
           ${uploading ? "border-muted-foreground/30 bg-muted/20" : "border-border hover:border-muted-foreground/40 hover:bg-muted/20"}
           transition-colors cursor-pointer flex flex-col items-center justify-center gap-2 px-4 py-8
         `}
@@ -155,9 +158,6 @@ export function CoverImageUpload({
             <span className="text-sm text-muted-foreground">
               点击或拖拽图片到此处上传
             </span>
-            <span className="text-xs text-muted-foreground/60">
-              {recommendText} · JPG/PNG/WebP/GIF · 最大 5MB
-            </span>
           </>
         )}
       </div>
@@ -168,6 +168,7 @@ export function CoverImageUpload({
         className="hidden"
         onChange={handleFileChange}
       />
+      <p className="text-xs text-muted-foreground/70">{hintText}</p>
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   )

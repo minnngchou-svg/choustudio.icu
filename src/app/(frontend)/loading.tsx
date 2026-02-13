@@ -18,7 +18,7 @@ export default function FrontendLoading() {
           <div className="h-8 w-40 bg-muted rounded" />
           <div className="h-4 w-16 bg-muted rounded" />
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="rounded-xl border border-border/50 bg-card/50 overflow-hidden">
               <div className="aspect-[3/4] bg-muted" />
@@ -37,7 +37,7 @@ export default function FrontendLoading() {
           <div className="h-8 w-32 bg-muted rounded" />
           <div className="h-4 w-16 bg-muted rounded" />
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="rounded-xl border border-border/50 bg-card/50 overflow-hidden">
               <div className="aspect-[3/4] bg-muted" />

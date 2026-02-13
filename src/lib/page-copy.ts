@@ -12,6 +12,10 @@ export type PageCopy = {
   aboutWorkTitle?: string
   aboutEducationTitle?: string
   aboutSkillsTitle?: string
+  coverRatioWorksDesign?: string
+  coverRatioWorksDev?: string
+  coverRatioBlog?: string
+  coverRatioTutorials?: string
 }
 
 export const defaultPageCopy: PageCopy = {
@@ -27,6 +31,10 @@ export const defaultPageCopy: PageCopy = {
   aboutWorkTitle: "工作经历",
   aboutEducationTitle: "学习经历",
   aboutSkillsTitle: "技能",
+  coverRatioWorksDesign: "3:4",
+  coverRatioWorksDev: "3:4",
+  coverRatioBlog: "3:4",
+  coverRatioTutorials: "3:4",
 }
 
 /** 默认网站描述（SEO meta description） */

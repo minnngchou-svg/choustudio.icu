@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import { requireAdmin } from "@/lib/require-admin"
 import prisma from "@/lib/prisma"
 import { sanitizeWorkForPublic } from "@/lib/sanitize-work"
+import { normalizeCoverRatio } from "@/lib/cover-ratio"
 
 export const dynamic = "force-dynamic"
 
@@ -50,6 +51,7 @@ export async function PUT(
     description,
     content,
     coverImage,
+    coverRatio,
     images,
     price,
     isFree,
@@ -74,6 +76,7 @@ export async function PUT(
       ...(description != null && { description }),
       ...(content != null && { content }),
       ...(coverImage != null && { coverImage }),
+      ...(coverRatio != null && { coverRatio: normalizeCoverRatio(coverRatio) }),
       ...(images != null && { images }),
       ...(price != null && { price }),
       ...(typeof isFree === "boolean" && { isFree }),

@@ -15,6 +15,13 @@ import {
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 import { MiniEditor } from "@/components/admin/MiniEditor"
 import { SOCIAL_LINK_ENTRIES, isImageUrl, type SocialLinks } from "@/lib/social-links"
@@ -39,6 +46,12 @@ import {
 } from "@/lib/theme-presets"
 import { useThemeColor } from "@/components/ThemeColorProvider"
 import { cn } from "@/lib/utils"
+import {
+  COVER_RATIO_OPTIONS,
+  DEFAULT_COVER_RATIO,
+  normalizeCoverRatio,
+  type CoverRatioId,
+} from "@/lib/cover-ratio"
 
 type NavData = {
   logoText?: string
@@ -62,6 +75,10 @@ type PageCopyData = {
   aboutWorkTitle?: string
   aboutEducationTitle?: string
   aboutSkillsTitle?: string
+  coverRatioWorksDesign?: string
+  coverRatioWorksDev?: string
+  coverRatioBlog?: string
+  coverRatioTutorials?: string
 }
 
 export default function SettingsPage() {
@@ -101,6 +118,10 @@ export default function SettingsPage() {
   const [aboutWorkTitle, setAboutWorkTitle] = useState(defaultPageCopy.aboutWorkTitle ?? "")
   const [aboutEducationTitle, setAboutEducationTitle] = useState(defaultPageCopy.aboutEducationTitle ?? "")
   const [aboutSkillsTitle, setAboutSkillsTitle] = useState(defaultPageCopy.aboutSkillsTitle ?? "")
+  const [coverRatioWorksDesign, setCoverRatioWorksDesign] = useState<CoverRatioId>(DEFAULT_COVER_RATIO)
+  const [coverRatioWorksDev, setCoverRatioWorksDev] = useState<CoverRatioId>(DEFAULT_COVER_RATIO)
+  const [coverRatioBlog, setCoverRatioBlog] = useState<CoverRatioId>(DEFAULT_COVER_RATIO)
+  const [coverRatioTutorials, setCoverRatioTutorials] = useState<CoverRatioId>(DEFAULT_COVER_RATIO)
   const [themeBase, setThemeBase] = useState<BaseColorId>(DEFAULT_THEME.base)
   const [themeAccent, setThemeAccent] = useState<AccentColorId>(DEFAULT_THEME.accent)
   const [footerCopyrightText, setFooterCopyrightText] = useState(defaultFooter.copyrightText ?? "")
@@ -156,6 +177,10 @@ export default function SettingsPage() {
         setAboutWorkTitle(copy.aboutWorkTitle ?? defaultPageCopy.aboutWorkTitle ?? "")
         setAboutEducationTitle(copy.aboutEducationTitle ?? defaultPageCopy.aboutEducationTitle ?? "")
         setAboutSkillsTitle(copy.aboutSkillsTitle ?? defaultPageCopy.aboutSkillsTitle ?? "")
+        setCoverRatioWorksDesign(normalizeCoverRatio(copy.coverRatioWorksDesign))
+        setCoverRatioWorksDev(normalizeCoverRatio(copy.coverRatioWorksDev))
+        setCoverRatioBlog(normalizeCoverRatio(copy.coverRatioBlog))
+        setCoverRatioTutorials(normalizeCoverRatio(copy.coverRatioTutorials))
         const ft = data.footer as FooterConfig | undefined
         if (ft && typeof ft === "object") {
           setFooterCopyrightText(ft.copyrightText ?? defaultFooter.copyrightText ?? "")
@@ -239,6 +264,10 @@ export default function SettingsPage() {
             aboutWorkTitle: aboutWorkTitle.trim(),
             aboutEducationTitle: aboutEducationTitle.trim(),
             aboutSkillsTitle: aboutSkillsTitle.trim(),
+            coverRatioWorksDesign,
+            coverRatioWorksDev,
+            coverRatioBlog,
+            coverRatioTutorials,
           },
         }),
       })
@@ -634,7 +663,7 @@ export default function SettingsPage() {
               {/* 设计作品 */}
               <div className="space-y-4">
                 <p className="text-sm font-semibold text-foreground">设计作品</p>
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-3">
                   <div className="space-y-2">
                     <Label htmlFor="navWorksDesign">导航名称</Label>
                     <Input id="navWorksDesign" value={navWorksDesign} onChange={(e) => setNavWorksDesign(e.target.value)} />
@@ -648,6 +677,19 @@ export default function SettingsPage() {
                       onChange={(e) => setWorksDesignDesc(e.target.value)}
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="coverRatioWorksDesign">封面比例</Label>
+                    <Select value={coverRatioWorksDesign} onValueChange={(v) => setCoverRatioWorksDesign(normalizeCoverRatio(v))}>
+                      <SelectTrigger id="coverRatioWorksDesign">
+                        <SelectValue placeholder="选择比例" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COVER_RATIO_OPTIONS.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>{item.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
 
@@ -656,7 +698,7 @@ export default function SettingsPage() {
               {/* 开发作品 */}
               <div className="space-y-4">
                 <p className="text-sm font-semibold text-foreground">开发作品</p>
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-3">
                   <div className="space-y-2">
                     <Label htmlFor="navWorksDev">导航名称</Label>
                     <Input id="navWorksDev" value={navWorksDev} onChange={(e) => setNavWorksDev(e.target.value)} />
@@ -670,6 +712,19 @@ export default function SettingsPage() {
                       onChange={(e) => setWorksDevDesc(e.target.value)}
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="coverRatioWorksDev">封面比例</Label>
+                    <Select value={coverRatioWorksDev} onValueChange={(v) => setCoverRatioWorksDev(normalizeCoverRatio(v))}>
+                      <SelectTrigger id="coverRatioWorksDev">
+                        <SelectValue placeholder="选择比例" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COVER_RATIO_OPTIONS.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>{item.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
 
@@ -678,7 +733,7 @@ export default function SettingsPage() {
               {/* 文章/笔记 */}
               <div className="space-y-4">
                 <p className="text-sm font-semibold text-foreground">文章 / 笔记</p>
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-3">
                   <div className="space-y-2">
                     <Label htmlFor="navBlog">导航名称</Label>
                     <Input id="navBlog" value={navBlog} onChange={(e) => setNavBlog(e.target.value)} />
@@ -692,6 +747,19 @@ export default function SettingsPage() {
                       onChange={(e) => setBlogDesc(e.target.value)}
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="coverRatioBlog">封面比例</Label>
+                    <Select value={coverRatioBlog} onValueChange={(v) => setCoverRatioBlog(normalizeCoverRatio(v))}>
+                      <SelectTrigger id="coverRatioBlog">
+                        <SelectValue placeholder="选择比例" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COVER_RATIO_OPTIONS.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>{item.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
 
@@ -700,7 +768,7 @@ export default function SettingsPage() {
               {/* 视频教程 */}
               <div className="space-y-4">
                 <p className="text-sm font-semibold text-foreground">视频教程</p>
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-3">
                   <div className="space-y-2">
                     <Label htmlFor="navTutorials">导航名称</Label>
                     <Input id="navTutorials" value={navTutorials} onChange={(e) => setNavTutorials(e.target.value)} />
@@ -713,6 +781,19 @@ export default function SettingsPage() {
                       value={tutorialsDesc}
                       onChange={(e) => setTutorialsDesc(e.target.value)}
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="coverRatioTutorials">封面比例</Label>
+                    <Select value={coverRatioTutorials} onValueChange={(v) => setCoverRatioTutorials(normalizeCoverRatio(v))}>
+                      <SelectTrigger id="coverRatioTutorials">
+                        <SelectValue placeholder="选择比例" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COVER_RATIO_OPTIONS.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>{item.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
@@ -800,13 +881,13 @@ export default function SettingsPage() {
                           : "border-border/50 hover:border-border hover:bg-accent/50",
                       )}
                     >
-                      <div className="flex gap-1">
+                      <div className="grid w-full max-w-[72px] grid-cols-2 gap-1.5">
                         <div
-                          className="h-6 w-6 rounded-full border border-border/50"
+                          className="h-8 rounded-md border border-border/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                           style={{ background: preset.light["--background"] }}
                         />
                         <div
-                          className="h-6 w-6 rounded-full border border-border/50"
+                          className="h-8 rounded-md border border-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
                           style={{ background: preset.dark["--background"] }}
                         />
                       </div>

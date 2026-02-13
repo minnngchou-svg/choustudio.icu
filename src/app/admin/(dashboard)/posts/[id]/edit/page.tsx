@@ -17,6 +17,13 @@ import { MiniEditor } from "@/components/admin/MiniEditor"
 import { CategoryCombobox } from "@/components/admin/CategoryCombobox"
 import { TagCombobox } from "@/components/admin/TagCombobox"
 import { getInitialContentForEditor } from "@/lib/content-format"
+import {
+  DEFAULT_COVER_RATIO,
+  coverRatioToCss,
+  getCoverRatioRecommendText,
+  normalizeCoverRatio,
+  type CoverRatioId,
+} from "@/lib/cover-ratio"
 
 function titleToSlug(title: string): string {
   return title
@@ -37,6 +44,7 @@ export default function EditPostPage() {
   const [content, setContent] = useState<Block[] | null>(null)
   const [excerpt, setExcerpt] = useState("")
   const [coverImage, setCoverImage] = useState("")
+  const [moduleCoverRatio, setModuleCoverRatio] = useState<CoverRatioId>(DEFAULT_COVER_RATIO)
   const [categoryId, setCategoryId] = useState("")
   const [tagIds, setTagIds] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
@@ -68,6 +76,18 @@ export default function EditPostPage() {
       .finally(() => setLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
+
+  useEffect(() => {
+    fetch("/api/settings", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        const copy = data?.pageCopy && typeof data.pageCopy === "object"
+          ? (data.pageCopy as Record<string, unknown>)
+          : {}
+        setModuleCoverRatio(normalizeCoverRatio(copy.coverRatioBlog))
+      })
+      .catch(() => {})
+  }, [])
 
   async function handleSave(status: "DRAFT" | "PUBLISHED") {
     if (!title.trim() || !slug.trim()) {
@@ -226,8 +246,8 @@ export default function EditPostPage() {
                   onChange={setCoverImage}
                   entityType="POST"
                   entityId={id}
-                  aspectRatio="3/4"
-                  recommendText="推荐 3:4 比例，如 720x960"
+                  aspectRatio={coverRatioToCss(moduleCoverRatio)}
+                  recommendText={getCoverRatioRecommendText(moduleCoverRatio)}
                 />
               </CardContent>
             </Card>

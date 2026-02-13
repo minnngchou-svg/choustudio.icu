@@ -26,6 +26,13 @@ import { CategoryCombobox } from "@/components/admin/CategoryCombobox"
 import { TagCombobox } from "@/components/admin/TagCombobox"
 import { getInitialContentForEditor } from "@/lib/content-format"
 import { compressImageToDataUrl } from "@/lib/avatar-compress"
+import {
+  DEFAULT_COVER_RATIO,
+  coverRatioToCss,
+  getCoverRatioRecommendText,
+  normalizeCoverRatio,
+  type CoverRatioId,
+} from "@/lib/cover-ratio"
 
 function titleToSlug(title: string): string {
   return title
@@ -82,6 +89,8 @@ export default function EditWorkPage() {
   const [currentStatus, setCurrentStatus] = useState<"DRAFT" | "PUBLISHED">("DRAFT")
   const [originalSlug, setOriginalSlug] = useState("")
   const [deliveryRedacted, setDeliveryRedacted] = useState(false)
+  const [coverRatioWorksDesign, setCoverRatioWorksDesign] = useState<CoverRatioId>(DEFAULT_COVER_RATIO)
+  const [coverRatioWorksDev, setCoverRatioWorksDev] = useState<CoverRatioId>(DEFAULT_COVER_RATIO)
   const fetchedRef = useRef(false)
 
   useEffect(() => {
@@ -134,6 +143,21 @@ export default function EditWorkPage() {
       .finally(() => setLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
+
+  useEffect(() => {
+    fetch("/api/settings", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        const copy = data?.pageCopy && typeof data.pageCopy === "object"
+          ? (data.pageCopy as Record<string, unknown>)
+          : {}
+        setCoverRatioWorksDesign(normalizeCoverRatio(copy.coverRatioWorksDesign))
+        setCoverRatioWorksDev(normalizeCoverRatio(copy.coverRatioWorksDev))
+      })
+      .catch(() => {})
+  }, [])
+
+  const activeCoverRatio = workType === "DEVELOPMENT" ? coverRatioWorksDev : coverRatioWorksDesign
 
   function suggestNextVersion(): string {
     if (versions.length === 0) return "1.0"
@@ -466,8 +490,8 @@ export default function EditWorkPage() {
                   onChange={setCoverImage}
                   entityType={workType === "DESIGN" ? "WORK_DESIGN" : "WORK_DEVELOPMENT"}
                   entityId={id}
-                  aspectRatio="3/4"
-                  recommendText="推荐 3:4 比例，如 720x960"
+                  aspectRatio={coverRatioToCss(activeCoverRatio)}
+                  recommendText={getCoverRatioRecommendText(activeCoverRatio)}
                 />
               </CardContent>
             </Card>
@@ -502,7 +526,7 @@ export default function EditWorkPage() {
                   onChange={(e) => setDemoUrl(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  填写可直接访问的在线演示地址，前台将显示"在线体验"按钮。
+                  填写可直接访问的在线演示地址，前台将显示“在线体验”按钮。
                 </p>
               </div>
               <Separator />
@@ -644,7 +668,7 @@ export default function EditWorkPage() {
                   <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-500/5 border border-amber-500/20 -mt-1">
                     <i className="ri-information-line text-amber-500 shrink-0" />
                     <p className="text-xs text-amber-600 dark:text-amber-400">
-                      每个版本需包含至少一个交付链接（Figma 或自定义链接），否则前台将显示"仅供预览"。
+                      每个版本需包含至少一个交付链接（Figma 或自定义链接），否则前台将显示“仅供预览”。
                     </p>
                   </div>
                   {(showNewVersion || versions.length === 0) && (

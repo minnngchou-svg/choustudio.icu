@@ -8,6 +8,7 @@ import { CoverImage } from "@/components/frontend/CoverImage"
 import { defaultNav } from "@/lib/nav-config"
 import { defaultPageCopy, defaultSiteName } from "@/lib/page-copy"
 import { useNavConfig } from "@/hooks/useNavConfig"
+import { coverRatioToCss } from "@/lib/cover-ratio"
 
 type Tutorial = {
   id: string
@@ -50,13 +51,16 @@ function getEmbedUrl(url: string): string | null {
 }
 
 
-function TutorialExpandCard({ item, embedUrl }: { item: Tutorial; embedUrl: string }) {
+function TutorialExpandCard({ item, embedUrl, moduleCoverRatio }: { item: Tutorial; embedUrl: string; moduleCoverRatio: string | undefined }) {
   const [expanded, setExpanded] = useState(false)
   return (
     <div>
       <button type="button" className="block w-full text-left transition-transform duration-300 hover:scale-[1.1]" onClick={() => setExpanded(!expanded)}>
         <GlowBorder className="group rounded-xl overflow-hidden border border-border/50 bg-card/50 backdrop-blur-sm flex flex-col">
-          <div className="aspect-[3/4] overflow-hidden bg-muted relative shrink-0">
+          <div
+            className="overflow-hidden bg-muted relative shrink-0"
+            style={{ aspectRatio: coverRatioToCss(moduleCoverRatio) }}
+          >
             <CoverImage src={item.thumbnail} alt={item.title} fallbackIcon="ri-video-line" />
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/20">
               <i className={`${expanded ? "ri-close-circle-fill" : "ri-play-circle-fill"} text-4xl text-white/90`} />
@@ -104,6 +108,7 @@ export default function TutorialsPage() {
   const { nav, pageCopy, siteName } = useNavConfig()
   const sectionLabel = nav.tutorials ?? defaultNav.tutorials ?? ""
   const sectionDesc = pageCopy.tutorialsDesc ?? defaultPageCopy.tutorialsDesc ?? ""
+  const moduleCoverRatio = pageCopy.coverRatioTutorials
   const [list, setList] = useState<Tutorial[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -167,12 +172,15 @@ export default function TutorialsPage() {
                   <section id={item.slug} className="scroll-mt-8">
                     {embedUrl ? (
                       /* 可嵌入的视频 - 点击展开 */
-                      <TutorialExpandCard item={item} embedUrl={embedUrl} />
+                      <TutorialExpandCard item={item} embedUrl={embedUrl} moduleCoverRatio={moduleCoverRatio} />
                     ) : (
                       /* 外部链接 - 跳转 */
                       <a href={item.videoUrl} target="_blank" rel="noopener noreferrer" className="block transition-transform duration-300 hover:scale-[1.1]">
                         <GlowBorder className="group rounded-xl overflow-hidden border border-border/50 bg-card/50 backdrop-blur-sm flex flex-col">
-                          <div className="aspect-[3/4] overflow-hidden bg-muted relative shrink-0">
+                          <div
+                            className="overflow-hidden bg-muted relative shrink-0"
+                            style={{ aspectRatio: coverRatioToCss(moduleCoverRatio) }}
+                          >
                             <CoverImage src={item.thumbnail} alt={item.title} fallbackIcon="ri-video-line" />
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/20">
                               <i className="ri-play-circle-fill text-4xl text-white/90" />

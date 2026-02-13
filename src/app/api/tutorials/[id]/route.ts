@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/require-admin"
 import prisma from "@/lib/prisma"
+import { normalizeCoverRatio } from "@/lib/cover-ratio"
 
 export const dynamic = "force-dynamic"
 
@@ -27,7 +28,17 @@ export async function PUT(
   if (!check.authorized) return check.response
   const { id } = await params
   const body = await request.json()
-  const { title, slug, description, videoUrl, thumbnail, sortOrder, categoryId, tagIds } = body
+  const {
+    title,
+    slug,
+    description,
+    videoUrl,
+    thumbnail,
+    coverRatio,
+    sortOrder,
+    categoryId,
+    tagIds,
+  } = body
 
   const item = await prisma.videoTutorial.update({
     where: { id },
@@ -37,6 +48,7 @@ export async function PUT(
       ...(description != null && { description }),
       ...(videoUrl != null && { videoUrl: videoUrl.trim() }),
       ...(thumbnail != null && { thumbnail: thumbnail.trim() || null }),
+      ...(coverRatio != null && { coverRatio: normalizeCoverRatio(coverRatio) }),
       ...(typeof sortOrder === "number" && { sortOrder }),
       ...(categoryId !== undefined && { categoryId: categoryId || null }),
       ...(tagIds != null && {

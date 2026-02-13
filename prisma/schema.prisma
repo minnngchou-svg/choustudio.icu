@@ -38,6 +38,7 @@ model Post {
   content     Json       // Plate 编辑器 JSON 内容
   excerpt     String?    @db.Text
   coverImage  String?    @db.Text
+  coverRatio  String     @default("3:4") @db.VarChar(10)
   status      PostStatus @default(DRAFT)
   categoryId  String?
   category    Category?  @relation(fields: [categoryId], references: [id])
@@ -68,6 +69,7 @@ model Work {
   description    String?       @db.Text
   content        Json?         // 详细描述（Plate JSON）
   coverImage     String        @db.Text
+  coverRatio     String        @default("3:4") @db.VarChar(10)
   images         Json          // 详情图数组，存储为 JSON
   currentVersion String?       @db.VarChar(20)  // 当前最新版本号
   price          Decimal?      @db.Decimal(10, 2)
@@ -203,6 +205,7 @@ model VideoTutorial {
   description String?   @db.Text
   videoUrl    String    @db.Text   // 视频链接（B 站、YouTube 等）
   thumbnail   String?   @db.Text
+  coverRatio  String    @default("3:4") @db.VarChar(10)
   categoryId  String?
   category    Category? @relation(fields: [categoryId], references: [id])
   tags        Tag[]

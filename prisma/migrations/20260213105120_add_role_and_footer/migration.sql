@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE `Settings` ADD COLUMN `footer` JSON NULL;
+
+-- AlterTable
+ALTER TABLE `User` ADD COLUMN `role` ENUM('ADMIN', 'VIEWER') NOT NULL DEFAULT 'ADMIN';

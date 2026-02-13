@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/require-admin"
 import prisma from "@/lib/prisma"
+import { normalizeCoverRatio } from "@/lib/cover-ratio"
 
 export const dynamic = "force-dynamic"
 
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
   const check = await requireAdmin()
   if (!check.authorized) return check.response
   const body = await request.json()
-  const { title, slug, description, videoUrl, thumbnail, sortOrder } = body
+  const { title, slug, description, videoUrl, thumbnail, coverRatio, sortOrder } = body
 
   if (!title || !slug) {
     return NextResponse.json(
@@ -61,6 +62,7 @@ export async function POST(request: NextRequest) {
       description: description || null,
       videoUrl: videoUrl?.trim() || "",
       thumbnail: thumbnail?.trim() || null,
+      coverRatio: normalizeCoverRatio(coverRatio),
       sortOrder: typeof sortOrder === "number" ? sortOrder : 0,
     },
   })

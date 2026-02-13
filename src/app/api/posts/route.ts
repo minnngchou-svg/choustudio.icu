@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { requireAdmin } from "@/lib/require-admin"
 import prisma from "@/lib/prisma"
+import { normalizeCoverRatio } from "@/lib/cover-ratio"
 
 export const dynamic = "force-dynamic"
 
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
   const check = await requireAdmin()
   if (!check.authorized) return check.response
   const body = await request.json()
-  const { title, slug, content, excerpt, coverImage, status, categoryId } = body
+  const { title, slug, content, excerpt, coverImage, coverRatio, status, categoryId } = body
 
   if (!title || !slug) {
     return NextResponse.json(
@@ -70,6 +71,7 @@ export async function POST(request: NextRequest) {
       content: content ?? {},
       excerpt: excerpt || null,
       coverImage: coverImage || null,
+      coverRatio: normalizeCoverRatio(coverRatio),
       status: status === "PUBLISHED" ? "PUBLISHED" : "DRAFT",
       categoryId: categoryId || null,
       authorId: check.userId,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { requireAdmin } from "@/lib/require-admin"
 import prisma from "@/lib/prisma"
+import { normalizeCoverRatio } from "@/lib/cover-ratio"
 
 export const dynamic = "force-dynamic"
 
@@ -33,7 +34,18 @@ export async function PUT(
   if (!check.authorized) return check.response
   const { id } = await params
   const body = await request.json()
-  const { title, slug, content, excerpt, coverImage, status, categoryId, sortOrder, tagIds } = body
+  const {
+    title,
+    slug,
+    content,
+    excerpt,
+    coverImage,
+    coverRatio,
+    status,
+    categoryId,
+    sortOrder,
+    tagIds,
+  } = body
 
   const post = await prisma.post.update({
     where: { id },
@@ -43,6 +55,7 @@ export async function PUT(
       ...(content != null && { content }),
       ...(excerpt != null && { excerpt }),
       ...(coverImage != null && { coverImage }),
+      ...(coverRatio != null && { coverRatio: normalizeCoverRatio(coverRatio) }),
       ...(status != null && {
         status: status === "PUBLISHED" ? "PUBLISHED" : "DRAFT",
       }),

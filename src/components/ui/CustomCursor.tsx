@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useThemeColor } from "@/components/ThemeColorProvider"
 
 /** 从 CSS 变量读取当前主题的 6 色（跳过 pride-4 白色）。 */
 function getThemeColors(): string[] {
@@ -25,6 +26,7 @@ interface TrailPoint {
 }
 
 export function CustomCursor() {
+  const { themeConfig } = useThemeColor()
   const [isVisible, setIsVisible] = useState(false)
   const [trail, setTrail] = useState<TrailPoint[]>([])
   const colorIndexRef = useRef(0)
@@ -34,7 +36,8 @@ export function CustomCursor() {
 
   useEffect(() => {
     colorsRef.current = getThemeColors()
-  }, [])
+    colorIndexRef.current = 0
+  }, [themeConfig])
 
   const addPoint = useCallback((x: number, y: number) => {
     const now = Date.now()

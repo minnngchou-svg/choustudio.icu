@@ -8,6 +8,7 @@ import { useState, useEffect } from "react"
 import { FadeContent, GlowBorder } from "@/components/react-bits"
 import { CoverImage } from "@/components/frontend/CoverImage"
 import { useNavConfig } from "@/hooks/useNavConfig"
+import { coverRatioToCss } from "@/lib/cover-ratio"
 
 type Post = {
   id: string
@@ -27,6 +28,7 @@ export default function BlogPage() {
   const [activeCategory, setActiveCategory] = useState("全部")
   const sectionLabel = nav.blog ?? defaultNav.blog ?? ""
   const sectionDesc = pageCopy.blogDesc ?? defaultPageCopy.blogDesc ?? ""
+  const moduleCoverRatio = pageCopy.coverRatioBlog
 
   useEffect(() => {
     fetch("/api/posts")
@@ -118,7 +120,10 @@ export default function BlogPage() {
             <FadeContent key={post.id} delay={0.1 + index * 0.05} className="break-inside-avoid mb-5">
               <Link href={`/blog/${post.slug}`} className="block transition-transform duration-300 hover:scale-[1.1]">
                 <GlowBorder className="group rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden flex flex-col">
-                  <div className="aspect-[3/4] overflow-hidden bg-muted shrink-0">
+                  <div
+                    className="overflow-hidden bg-muted shrink-0"
+                    style={{ aspectRatio: coverRatioToCss(moduleCoverRatio) }}
+                  >
                     <CoverImage src={post.coverImage} alt={post.title} fallbackIcon="ri-article-line" />
                   </div>
                   <div className="p-4">
