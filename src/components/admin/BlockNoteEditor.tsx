@@ -8,9 +8,13 @@ import {
   SideMenuController,
   AddBlockButton,
   SideMenu,
+  SuggestionMenuController,
+  getDefaultReactSlashMenuItems,
 } from "@blocknote/react"
 import { BlockNoteView } from "@blocknote/shadcn"
 import type { Block, PartialBlock } from "@blocknote/core"
+import { filterSuggestionItems } from "@blocknote/core/extensions"
+import { zh } from "@blocknote/core/locales"
 import type { MediaEntityType } from "@/lib/media-storage"
 import { Button } from "@/components/ui/button"
 import { StaticFormattingToolbar } from "./StaticFormattingToolbar"
@@ -35,6 +39,14 @@ export interface BlockNoteEditorProps {
   entityType?: MediaEntityType
   entityId?: string
 }
+
+const HIDDEN_SLASH_MENU_KEYS = new Set([
+  "code_block",
+  "table",
+  "video",
+  "audio",
+  "file",
+])
 
 function createUploadFile(entityType?: MediaEntityType, entityId?: string) {
   return async (file: File): Promise<string> => {
@@ -79,6 +91,16 @@ export function BlockNoteEditor({
     () => createUploadFile(entityType, entityId),
     [entityType, entityId],
   )
+  const dictionary = useMemo(
+    () => ({
+      ...zh,
+      placeholders: {
+        ...zh.placeholders,
+        default: placeholder,
+      },
+    }),
+    [placeholder],
+  )
   const [zoom, setZoom] = useState(1)
   const [fullscreen, setFullscreen] = useState(false)
   const minZoom = 0.8
@@ -90,10 +112,17 @@ export function BlockNoteEditor({
       ? (value as PartialBlock[])
       : undefined,
     uploadFile,
-    placeholders: {
-      default: placeholder,
-    },
+    dictionary,
   })
+  const getSlashMenuItems = useMemo(
+    () => async (query: string) => {
+      const items = getDefaultReactSlashMenuItems(editor).filter(
+        (item) => !HIDDEN_SLASH_MENU_KEYS.has(item.key),
+      )
+      return filterSuggestionItems(items, query)
+    },
+    [editor],
+  )
 
   useEffect(() => {
     if (typeof document === "undefined") return
@@ -105,7 +134,6 @@ export function BlockNoteEditor({
 
   const zoomPercent = Math.round(zoom * 100)
   const scaledWidth = `${100 / zoom}%`
-  const contentMinHeight = fullscreen ? "calc(100dvh - 92px)" : minHeight
 
   const renderShell = (
     shellClassName: string,
@@ -186,9 +214,11 @@ export function BlockNoteEditor({
             theme={editorTheme}
             formattingToolbar={false}
             sideMenu={false}
+            slashMenu={false}
             data-theming-css-variables-demo
           >
             <SideMenuController sideMenu={AddOnlySideMenu} />
+            <SuggestionMenuController triggerCharacter="/" getItems={getSlashMenuItems} />
           </BlockNoteView>
         </div>
       </div>
