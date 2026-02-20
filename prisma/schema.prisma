@@ -186,7 +186,7 @@ model Media {
 // ==================== 网站设置模型 ====================
 model Settings {
   id            String  @id @default("settings")
-  siteName      String  @default("Fan's Studio") @db.VarChar(255)
+  siteName      String  @default("Chou's Studio") @db.VarChar(255)
   avatar        String? @db.Text
   socialLinks   Json?   // { wechat, xiaohongshu, officialAccount, bilibili, figma, youshe, x, github }
   about         Json?   // 关于页内容

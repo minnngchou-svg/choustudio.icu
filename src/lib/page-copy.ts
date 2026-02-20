@@ -49,6 +49,6 @@ export const defaultPersonalName = "红叶落日"
 /** 站点名归一化：空或无效时返回默认站点名 */
 export function normalizeSiteName(s: string | null | undefined): string {
   const t = s?.trim()
-  if (!t || t === "Chou's Portfolio") return defaultSiteName
+  if (!t || t === "Chou's Portfolio" || t === "Fan's Studio") return defaultSiteName
   return t
 }

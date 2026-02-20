@@ -100,7 +100,7 @@ async function main() {
     update: {},
     create: {
       id: "settings",
-      siteName: "Fan's Studio",
+      siteName: "Chou's Studio",
       socialLinks: {
         weibo: "",
         xiaohongshu: "",
