@@ -41,14 +41,14 @@ export const defaultPageCopy: PageCopy = {
 export const defaultSiteDescription = defaultPageCopy.siteDescription!
 
 /** 网站名称默认值（API、后台、前台 fallback 共用） */
-export const defaultSiteName = "Fan's Studio"
+export const defaultSiteName = "Chou's Studio"
 
 /** 个人信息展示默认值（Hero、关于页、作者 fallback 共用） */
-export const defaultPersonalName = "范米花儿"
+export const defaultPersonalName = "红叶落日"
 
 /** 站点名归一化：空或无效时返回默认站点名 */
 export function normalizeSiteName(s: string | null | undefined): string {
   const t = s?.trim()
-  if (!t || t === "Fan's Portfolio") return defaultSiteName
+  if (!t || t === "Chou's Portfolio") return defaultSiteName
   return t
 }

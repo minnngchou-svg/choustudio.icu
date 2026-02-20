@@ -206,7 +206,7 @@ function buildRefundHtml(p: {
             <td style="padding:20px 32px 32px;">
               <p style="margin:0 0 8px; font-size:13px; color:#737373;">赞助编号 ${p.orderNo}</p>
               <p style="margin:0; font-size:18px; font-weight:600; color:#fafafa;">返还金额 ￥${p.amount.toFixed(2)}</p>
-              <p style="margin:12px 0 0; font-size:13px; color:#a3a3a3;">款项将原路退回，到账时间以支付渠道为准。如有疑问请联系范米花儿。</p>
+              <p style="margin:12px 0 0; font-size:13px; color:#a3a3a3;">款项将原路退回，到账时间以支付渠道为准。如有疑问请联系红叶落日。</p>
             </td>
           </tr>
         </table>
@@ -318,7 +318,7 @@ function buildHtml(p: HtmlParams): string {
             <td align="center" style="padding:24px 32px 32px;">
               <p style="margin:0; font-size:12px; color:#525252; line-height:1.6;">
                 ${p.isFree ? "此邮件确认您已成功获取开源资源。" : "此邮件确认您的赞助已完成，请妥善保管。"}
-                ${!p.wechat ? "<br />如有问题，请联系范米花儿。" : ""}
+                ${!p.wechat ? "<br />如有问题，请联系红叶落日。" : ""}
               </p>
             </td>
           </tr>

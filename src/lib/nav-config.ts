@@ -11,7 +11,7 @@ export type NavConfig = {
 }
 
 export const defaultNav: NavConfig = {
-  logoText: "Fan's Studio",
+  logoText: "Chou's Studio",
   worksDesign: "设计作品",
   worksDev: "开发作品",
   blog: "知识分享",

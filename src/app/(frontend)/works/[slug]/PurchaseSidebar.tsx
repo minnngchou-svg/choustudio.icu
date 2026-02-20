@@ -703,7 +703,7 @@ export function PurchaseSidebar({
                           请妥善保管您的邮箱，后续可通过邮箱查询赞助记录。
                         </p>
                         <p className="text-xs text-muted-foreground text-center">
-                          如需返还或有其他疑问，请联系范米花儿。
+                          如需返还或有其他疑问，请联系红叶落日。
                         </p>
                       </>
                     )}
@@ -878,7 +878,7 @@ export function PurchaseSidebar({
                             本站为个人网站，不提供账户系统与在线查询。邮件将作为您获取资源的唯一凭证，请务必填写常用邮箱。
                           </p>
                           <p className="text-xs text-muted-foreground/70 leading-relaxed">
-                            赞助后不支持自助返还，如需返还或有其他疑问，请联系范米花儿。
+                            赞助后不支持自助返还，如需返还或有其他疑问，请联系红叶落日。
                           </p>
                         </>
                       )}

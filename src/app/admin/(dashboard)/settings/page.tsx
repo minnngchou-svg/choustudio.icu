@@ -1057,7 +1057,7 @@ export default function SettingsPage() {
                 <Label htmlFor="aboutStudioName">品牌 / 工作室名</Label>
                 <Input
                   id="aboutStudioName"
-                  placeholder="如 Fan's Studio，留空则使用「基本设置」中的网站名称"
+                  placeholder="如 Chou's Studio，留空则使用「基本设置」中的网站名称"
                   value={aboutStudioName}
                   onChange={(e) => setAboutStudioName(e.target.value)}
                 />

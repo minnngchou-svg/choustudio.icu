@@ -1,5 +1,5 @@
 /**
- * 主题预设：shadcn 5 基底灰度 + 9 强调色（8 shadcn + 范米花儿）。
+ * 主题预设：shadcn 5 基底灰度 + 9 强调色（8 shadcn + 红叶落日）。
  * 每个预设含亮/暗两套 CSS 变量值。
  */
 
@@ -302,7 +302,7 @@ export const BASE_PRESETS: ColorPreset[] = [
 export const ACCENT_PRESETS: AccentPreset[] = [
   {
     id: "fanmihua",
-    name: "范米花儿",
+    name: "红叶落日",
     preview: "#D162A4",
     gradient: ["#D52D00", "#EF7627", "#FF9A56", "#FFFFFF", "#D162A4", "#B55690", "#A30262"],
     charts: ["#D52D00", "#EF7627", "#FF9A56", "#D162A4", "#A30262"],
