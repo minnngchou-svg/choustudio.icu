@@ -1,4 +1,5 @@
 /** 前台根布局：拉取设置并注入 FrontendLayoutClient。 */
+export const dynamic = "force-dynamic"
 import { getFrontendSettings } from "@/lib/settings-server"
 import FrontendLayoutClient from "./FrontendLayoutClient"
 
