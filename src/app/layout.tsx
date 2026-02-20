@@ -7,6 +7,9 @@ import type { PageCopy } from "@/lib/page-copy"
 import "remixicon/fonts/remixicon.css"
 import "./globals.css"
 
+/** 强制动态渲染，确保 generateMetadata 每次都从数据库读取最新 siteName */
+export const dynamic = "force-dynamic"
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

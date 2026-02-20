@@ -1,10 +1,10 @@
 {
-  "name": "fanstudio",
+  "name": "choustudio",
   "version": "0.1.0",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/fan18660557495/fanstudio.git"
+    "url": "https://github.com/minnngchou-svg/choustudio.icu.git"
   },
   "scripts": {
     "dev": "next dev",
