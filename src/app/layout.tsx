@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next"
+import { headers } from "next/headers"
 import { Geist, Geist_Mono, Playfair_Display } from "next/font/google"
 import { Toaster } from "@/components/ui/sonner"
 import { getSettingsRow } from "@/lib/settings-db"
@@ -29,6 +30,9 @@ const playfair = Playfair_Display({
 })
 
 export async function generateMetadata(): Promise<Metadata> {
+  // 强制动态渲染，避免 metadata 被缓存
+  await headers()
+  
   const row = await getSettingsRow()
   const siteName = normalizeSiteName(row?.siteName)
   const pageCopy = row?.pageCopy && typeof row.pageCopy === "object"
