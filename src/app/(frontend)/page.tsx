@@ -78,26 +78,74 @@ export default function HomePage() {
   const [posts, setPosts] = useState<PostItem[]>([])
   const [tutorials, setTutorials] = useState<TutorialItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    Promise.all([
-      fetch("/api/settings").then((r) => r.json()),
-      fetch("/api/works?type=design").then((r) => r.json()),
-      fetch("/api/works?type=development").then((r) => r.json()),
-      fetch("/api/posts").then((r) => r.json()),
-      fetch("/api/tutorials").then((r) => (r.ok ? r.json() : [])),
-    ])
-      .then(([s, designW, devW, p, t]) => {
+  const fetchData = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const results = await Promise.allSettled([
+        fetch("/api/settings").then((r) => r.json()),
+        fetch("/api/works?type=design").then((r) => r.json()),
+        fetch("/api/works?type=development").then((r) => r.json()),
+        fetch("/api/posts").then((r) => r.json()),
+        fetch("/api/tutorials").then((r) => (r.ok ? r.json() : [])),
+      ])
+
+      const [sRes, designWRes, devWRes, pRes, tRes] = results
+      const errors: string[] = []
+
+      if (sRes.status === "fulfilled") {
+        const s = sRes.value
         if (s && typeof s === "object" && !("error" in s)) {
           setSettings(s)
         }
-        setDesignWorks(Array.isArray(designW) ? designW : [])
-        setDevWorks(Array.isArray(devW) ? devW : [])
-        setPosts(Array.isArray(p) ? p : [])
-        setTutorials(Array.isArray(t) ? t : [])
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+      } else {
+        errors.push("设置")
+        console.error("[HomePage] Settings API failed:", sRes.reason)
+      }
+
+      if (designWRes.status === "fulfilled") {
+        setDesignWorks(Array.isArray(designWRes.value) ? designWRes.value : [])
+      } else {
+        errors.push("设计作品")
+        console.error("[HomePage] Design works API failed:", designWRes.reason)
+      }
+
+      if (devWRes.status === "fulfilled") {
+        setDevWorks(Array.isArray(devWRes.value) ? devWRes.value : [])
+      } else {
+        errors.push("开发作品")
+        console.error("[HomePage] Dev works API failed:", devWRes.reason)
+      }
+
+      if (pRes.status === "fulfilled") {
+        setPosts(Array.isArray(pRes.value) ? pRes.value : [])
+      } else {
+        errors.push("知识分享")
+        console.error("[HomePage] Posts API failed:", pRes.reason)
+      }
+
+      if (tRes.status === "fulfilled") {
+        setTutorials(Array.isArray(tRes.value) ? tRes.value : [])
+      } else {
+        errors.push("视频教程")
+        console.error("[HomePage] Tutorials API failed:", tRes.reason)
+      }
+
+      if (errors.length > 0) {
+        setError(`${errors.join("、")}加载失败`)
+      }
+    } catch (err) {
+      console.error("[HomePage] Unexpected error:", err)
+      setError("页面数据加载失败，请刷新重试")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
   }, [])
 
   const articles = posts.slice(0, 4).map((p) => ({
@@ -135,6 +183,23 @@ export default function HomePage() {
         fallbackSocialLinks={contextSocialLinks}
         aboutLabel={nav.about ?? defaultNav.about ?? ""}
       />
+      {error && (
+        <div className="px-6 md:px-12 lg:px-16 py-4">
+          <div className="flex items-center justify-between gap-4 bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg">
+            <div className="flex items-center gap-2">
+              <i className="ri-error-warning-line text-lg" />
+              <span className="text-sm">{error}</span>
+            </div>
+            <button
+              onClick={fetchData}
+              className="flex items-center gap-1 text-sm font-medium hover:underline shrink-0"
+            >
+              <i className="ri-refresh-line" /> 重试
+            </button>
+          </div>
+        </div>
+      )}
+      <NotesSection title={notesTitle} articles={articles} coverRatio={blogCoverRatio} loading={loading} />
       <WorksGridSection
         title={designTitle}
         allLinkHref="/works/design"
@@ -151,7 +216,6 @@ export default function HomePage() {
         coverRatio={devCoverRatio}
         loading={loading}
       />
-      <NotesSection title={notesTitle} articles={articles} coverRatio={blogCoverRatio} loading={loading} />
       <TutorialsSection title={tutorialsTitle} items={tutorials.slice(0, 4)} coverRatio={tutorialsCoverRatio} loading={loading} />
       <FooterSection
         settings={settings}
