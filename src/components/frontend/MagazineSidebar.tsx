@@ -12,9 +12,9 @@ import { defaultNav } from "@/lib/nav-config"
 import { getBeijingVolShort } from "@/lib/date-util"
 
 const navKeys = [
+  { key: "blog" as const, href: "/blog", icon: "ri-quill-pen-line" },
   { key: "worksDesign" as const, href: "/works/design", icon: "ri-palette-line" },
   { key: "worksDev" as const, href: "/works/development", icon: "ri-code-s-slash-line" },
-  { key: "blog" as const, href: "/blog", icon: "ri-quill-pen-line" },
   { key: "tutorials" as const, href: "/tutorials", icon: "ri-video-line" },
   { key: "about" as const, href: "/about", icon: "ri-user-line" },
 ]

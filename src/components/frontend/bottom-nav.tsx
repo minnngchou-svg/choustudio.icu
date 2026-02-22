@@ -8,9 +8,9 @@ import { useNavConfig } from "@/hooks/useNavConfig"
 import { defaultNav } from "@/lib/nav-config"
 
 const navItems = [
+  { key: "blog" as const, href: "/blog", icon: "ri-article-line", activeIcon: "ri-article-fill" },
   { key: "worksDesign" as const, href: "/works/design", icon: "ri-palette-line", activeIcon: "ri-palette-fill" },
   { key: "worksDev" as const, href: "/works/development", icon: "ri-code-s-slash-line", activeIcon: "ri-code-s-slash-fill" },
-  { key: "blog" as const, href: "/blog", icon: "ri-article-line", activeIcon: "ri-article-fill" },
   { key: "tutorials" as const, href: "/tutorials", icon: "ri-video-line", activeIcon: "ri-video-fill" },
   { key: "about" as const, href: "/about", icon: "ri-user-line", activeIcon: "ri-user-fill" },
 ]
