@@ -9,6 +9,7 @@ export type SettingsRow = {
   nav: unknown
   pageCopy: unknown
   theme: unknown
+  footer: unknown
   updatedAt: Date
 }
 

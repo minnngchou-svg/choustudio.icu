@@ -14,7 +14,11 @@ export async function GET(
   const { id } = await params
   const post = await prisma.post.findUnique({
     where: { id },
-    include: { category: true, tags: true, author: true },
+    include: {
+      category: true,
+      tags: true,
+      author: { select: { id: true, name: true, email: true, avatar: true } },
+    },
   })
   if (!post) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
