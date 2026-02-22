@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
       deliveryUrl: deliveryUrl || null,
       demoUrl: demoUrl || null,
       demoQrCode: demoQrCode || null,
-      status: status === "PUBLISHED" ? "PUBLISHED" : "DRAFT",
+      status: status === "PUBLISHED" ? "PUBLISHED" : status === "PRIVATE" ? "PRIVATE" : "DRAFT",
       categoryId: categoryId || null,
       authorId: check.userId,
     },

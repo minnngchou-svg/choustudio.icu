@@ -64,6 +64,7 @@ export function WorksListClient({ workType, title, description }: WorksListClien
         options: [
           { label: "已发布", value: "PUBLISHED" },
           { label: "草稿", value: "DRAFT" },
+          { label: "私密", value: "PRIVATE" },
         ],
       },
     ]
@@ -90,6 +91,7 @@ export function WorksListClient({ workType, title, description }: WorksListClien
   const batchActions: BatchAction[] = useMemo(() => [
     { label: "发布", icon: "ri-check-line", onClick: () => handleBatchStatus("PUBLISHED") },
     { label: "转草稿", icon: "ri-draft-line", onClick: () => handleBatchStatus("DRAFT") },
+    { label: "设为私密", icon: "ri-lock-line", onClick: () => handleBatchStatus("PRIVATE") },
     {
       label: "删除", icon: "ri-delete-bin-line", variant: "destructive" as const, onClick: handleBatchDelete,
       needConfirm: true, confirmTitle: `确定删除选中的 ${tc.selectedIds.size} 个作品？`, confirmDescription: "删除后不可恢复",
@@ -222,8 +224,8 @@ export function WorksListClient({ workType, title, description }: WorksListClien
           </TableCell>
         )}
         <TableCell>
-          <Badge variant={work.status === "PUBLISHED" ? "default" : "secondary"}>
-            {work.status === "PUBLISHED" ? "已发布" : "草稿"}
+          <Badge variant={work.status === "PUBLISHED" ? "default" : work.status === "PRIVATE" ? "outline" : "secondary"}>
+            {work.status === "PUBLISHED" ? "已发布" : work.status === "PRIVATE" ? "私密" : "草稿"}
           </Badge>
         </TableCell>
         <TableCell>{formatDate(work.createdAt)}</TableCell>

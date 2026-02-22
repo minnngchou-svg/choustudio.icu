@@ -65,6 +65,12 @@ export async function PUT(
     tagIds,
   } = body
 
+  const normalizeStatus = (s: string | undefined) => {
+    if (s === "PUBLISHED") return "PUBLISHED"
+    if (s === "PRIVATE") return "PRIVATE"
+    return "DRAFT"
+  }
+
   const work = await prisma.work.update({
     where: { id },
     data: {
@@ -84,9 +90,7 @@ export async function PUT(
       ...(deliveryUrl !== undefined && { deliveryUrl: deliveryUrl || null }),
       ...(demoUrl !== undefined && { demoUrl: demoUrl || null }),
       ...(demoQrCode !== undefined && { demoQrCode: demoQrCode || null }),
-      ...(status != null && {
-        status: status === "PUBLISHED" ? "PUBLISHED" : "DRAFT",
-      }),
+      ...(status != null && { status: normalizeStatus(status) }),
       ...(categoryId != null && { categoryId: categoryId || null }),
       ...(sortOrder != null && { sortOrder: parseInt(String(sortOrder), 10) || 0 }),
       ...(tagIds != null && {

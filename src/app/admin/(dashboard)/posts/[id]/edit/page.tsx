@@ -49,7 +49,7 @@ export default function EditPostPage() {
   const [tagIds, setTagIds] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [currentStatus, setCurrentStatus] = useState<"DRAFT" | "PUBLISHED">("DRAFT")
+  const [currentStatus, setCurrentStatus] = useState<"DRAFT" | "PUBLISHED" | "PRIVATE">("DRAFT")
   const [originalSlug, setOriginalSlug] = useState("")
   const fetchedRef = useRef(false)
 
@@ -70,7 +70,7 @@ export default function EditPostPage() {
         setCoverImage(post.coverImage ?? "")
         setCategoryId(post.categoryId ?? "")
         setTagIds(Array.isArray(post.tags) ? post.tags.map((t: { id: string }) => t.id) : [])
-        setCurrentStatus(post.status === "PUBLISHED" ? "PUBLISHED" : "DRAFT")
+        setCurrentStatus(post.status === "PUBLISHED" ? "PUBLISHED" : post.status === "PRIVATE" ? "PRIVATE" : "DRAFT")
       })
       .catch(() => router.push("/admin/posts"))
       .finally(() => setLoading(false))
@@ -89,7 +89,7 @@ export default function EditPostPage() {
       .catch(() => {})
   }, [])
 
-  async function handleSave(status: "DRAFT" | "PUBLISHED") {
+  async function handleSave(status: "DRAFT" | "PUBLISHED" | "PRIVATE") {
     if (!title.trim() || !slug.trim()) {
       toast.error("请填写标题和 slug")
       return
@@ -145,6 +145,9 @@ export default function EditPostPage() {
             </Button>
             <Button variant="secondary" onClick={() => handleSave("DRAFT")} disabled={saving}>
               {saving ? "保存中…" : "保存草稿"}
+            </Button>
+            <Button variant="outline" onClick={() => handleSave("PRIVATE")} disabled={saving}>
+              {saving ? "保存中…" : currentStatus === "PRIVATE" ? "更新私密" : "设为私密"}
             </Button>
             <Button onClick={() => handleSave("PUBLISHED")} disabled={saving}>
               {saving ? "发布中…" : currentStatus === "PUBLISHED" ? "更新发布" : "发布"}

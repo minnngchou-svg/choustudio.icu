@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       excerpt: excerpt || null,
       coverImage: coverImage || null,
       coverRatio: normalizeCoverRatio(coverRatio),
-      status: status === "PUBLISHED" ? "PUBLISHED" : "DRAFT",
+      status: status === "PUBLISHED" ? "PUBLISHED" : status === "PRIVATE" ? "PRIVATE" : "DRAFT",
       categoryId: categoryId || null,
       authorId: check.userId,
     },

@@ -86,7 +86,7 @@ export default function EditWorkPage() {
   const [tagIds, setTagIds] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [currentStatus, setCurrentStatus] = useState<"DRAFT" | "PUBLISHED">("DRAFT")
+  const [currentStatus, setCurrentStatus] = useState<"DRAFT" | "PUBLISHED" | "PRIVATE">("DRAFT")
   const [originalSlug, setOriginalSlug] = useState("")
   const [deliveryRedacted, setDeliveryRedacted] = useState(false)
   const [coverRatioWorksDesign, setCoverRatioWorksDesign] = useState<CoverRatioId>(DEFAULT_COVER_RATIO)
@@ -119,7 +119,7 @@ export default function EditWorkPage() {
         setIsFree(!!work.isFree)
         setCategoryId(work.categoryId ?? "")
         setTagIds(Array.isArray(work.tags) ? work.tags.map((t: { id: string }) => t.id) : [])
-        setCurrentStatus(work.status === "PUBLISHED" ? "PUBLISHED" : "DRAFT")
+        setCurrentStatus(work.status === "PUBLISHED" ? "PUBLISHED" : work.status === "PRIVATE" ? "PRIVATE" : "DRAFT")
         // 加载版本列表
         try {
           const vRes = await fetch(`/api/works/${id}/versions`, { credentials: "include" })
@@ -302,7 +302,7 @@ export default function EditWorkPage() {
     }
   }
 
-  async function handleSave(status: "DRAFT" | "PUBLISHED") {
+  async function handleSave(status: "DRAFT" | "PUBLISHED" | "PRIVATE") {
     if (!title.trim() || !slug.trim()) {
       toast.error("请填写作品名称和 slug")
       return
@@ -368,6 +368,9 @@ export default function EditWorkPage() {
             </Button>
             <Button variant="secondary" onClick={() => handleSave("DRAFT")} disabled={saving}>
               {saving ? "保存中…" : "保存草稿"}
+            </Button>
+            <Button variant="outline" onClick={() => handleSave("PRIVATE")} disabled={saving}>
+              {saving ? "保存中…" : currentStatus === "PRIVATE" ? "更新私密" : "设为私密"}
             </Button>
             <Button onClick={() => handleSave("PUBLISHED")} disabled={saving}>
               {saving ? "发布中…" : currentStatus === "PUBLISHED" ? "更新发布" : "发布"}

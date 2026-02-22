@@ -220,11 +220,13 @@ model VideoTutorial {
 enum PostStatus {
   DRAFT
   PUBLISHED
+  PRIVATE
 }
 
 enum WorkStatus {
   DRAFT
   PUBLISHED
+  PRIVATE
 }
 
 enum OrderStatus {

@@ -43,7 +43,7 @@ export async function DELETE(request: NextRequest) {
   return NextResponse.json({ ok: true })
 }
 
-/** PATCH: 批量更新作品状态。body: { ids, status }，status 为 PUBLISHED 或 DRAFT。 */
+/** PATCH: 批量更新作品状态。body: { ids, status }，status 为 PUBLISHED、DRAFT 或 PRIVATE。 */
 export async function PATCH(request: NextRequest) {
   const check = await requireAdmin()
   if (!check.authorized) return check.response
@@ -51,7 +51,7 @@ export async function PATCH(request: NextRequest) {
   if (!Array.isArray(ids) || ids.length === 0) {
     return NextResponse.json({ error: "ids required" }, { status: 400 })
   }
-  if (!["PUBLISHED", "DRAFT"].includes(status)) {
+  if (!["PUBLISHED", "DRAFT", "PRIVATE"].includes(status)) {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 })
   }
   await prisma.work.updateMany({

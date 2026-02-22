@@ -47,6 +47,12 @@ export async function PUT(
     tagIds,
   } = body
 
+  const normalizeStatus = (s: string | undefined) => {
+    if (s === "PUBLISHED") return "PUBLISHED"
+    if (s === "PRIVATE") return "PRIVATE"
+    return "DRAFT"
+  }
+
   const post = await prisma.post.update({
     where: { id },
     data: {
@@ -56,9 +62,7 @@ export async function PUT(
       ...(excerpt != null && { excerpt }),
       ...(coverImage != null && { coverImage }),
       ...(coverRatio != null && { coverRatio: normalizeCoverRatio(coverRatio) }),
-      ...(status != null && {
-        status: status === "PUBLISHED" ? "PUBLISHED" : "DRAFT",
-      }),
+      ...(status != null && { status: normalizeStatus(status) }),
       ...(categoryId != null && { categoryId: categoryId || null }),
       ...(sortOrder != null && { sortOrder: parseInt(String(sortOrder), 10) || 0 }),
       ...(tagIds != null && {

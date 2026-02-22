@@ -58,6 +58,7 @@ export default function PostsPage() {
         options: [
           { label: "已发布", value: "PUBLISHED" },
           { label: "草稿", value: "DRAFT" },
+          { label: "私密", value: "PRIVATE" },
         ],
       },
     ]
@@ -82,6 +83,11 @@ export default function PostsPage() {
       label: "转草稿",
       icon: "ri-draft-line",
       onClick: () => handleBatchStatus("DRAFT"),
+    },
+    {
+      label: "设为私密",
+      icon: "ri-lock-line",
+      onClick: () => handleBatchStatus("PRIVATE"),
     },
     {
       label: "删除",
@@ -218,8 +224,8 @@ export default function PostsPage() {
         </TableCell>
         <TableCell>{post.category?.name ?? "-"}</TableCell>
         <TableCell>
-          <Badge variant={post.status === "PUBLISHED" ? "default" : "secondary"}>
-            {post.status === "PUBLISHED" ? "已发布" : "草稿"}
+          <Badge variant={post.status === "PUBLISHED" ? "default" : post.status === "PRIVATE" ? "outline" : "secondary"}>
+            {post.status === "PUBLISHED" ? "已发布" : post.status === "PRIVATE" ? "私密" : "草稿"}
           </Badge>
         </TableCell>
         <TableCell>{formatDate(post.createdAt)}</TableCell>
