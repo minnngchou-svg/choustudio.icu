@@ -7,7 +7,24 @@ import { normalizeSiteName } from "@/lib/page-copy"
 
 export const dynamic = "force-dynamic"
 
-/** 生成唯一订单号：ORD + 时间戳 + 6 位随机字符。 */
+const orderRateLimit = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT_WINDOW = 60 * 1000
+const RATE_LIMIT_MAX = 5
+
+function checkRateLimit(key: string): boolean {
+  const now = Date.now()
+  const record = orderRateLimit.get(key)
+  if (!record || now > record.resetAt) {
+    orderRateLimit.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW })
+    return true
+  }
+  if (record.count >= RATE_LIMIT_MAX) {
+    return false
+  }
+  record.count++
+  return true
+}
+
 function generateOrderNo(): string {
   const now = new Date()
   const ts = now.toISOString().replace(/[-:T.Z]/g, "").slice(0, 14)
@@ -25,6 +42,12 @@ export async function POST(request: NextRequest) {
   }
   if (!buyerEmail || typeof buyerEmail !== "string" || !buyerEmail.includes("@")) {
     return NextResponse.json({ error: "请输入有效的邮箱地址" }, { status: 400 })
+  }
+
+  const normalizedEmail = buyerEmail.trim().toLowerCase()
+  const rateLimitKey = normalizedEmail
+  if (!checkRateLimit(rateLimitKey)) {
+    return NextResponse.json({ error: "请求过于频繁，请稍后再试" }, { status: 429 })
   }
 
   const work = await prisma.work.findUnique({
@@ -45,7 +68,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "该作品暂无交付资源" }, { status: 400 })
   }
 
-  const normalizedEmail = buyerEmail.trim().toLowerCase()
   const existingPaidOrder = await prisma.order.findFirst({
     where: {
       buyerEmail: normalizedEmail,

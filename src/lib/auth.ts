@@ -52,7 +52,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
-        token.role = (user as { role?: string }).role ?? "ADMIN"
+        const userRole = (user as { role?: string }).role
+        if (!userRole) {
+          console.error("[auth] 用户角色缺失，拒绝登录:", user.id)
+          return null
+        }
+        token.role = userRole
       }
       return token
     },

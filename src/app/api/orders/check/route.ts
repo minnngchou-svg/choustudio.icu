@@ -3,6 +3,24 @@ import prisma from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
 
+const checkOrderRateLimit = new Map<string, { count: number; resetAt: number }>()
+const CHECK_RATE_LIMIT_WINDOW = 60 * 1000
+const CHECK_RATE_LIMIT_MAX = 10
+
+function checkOrderRateLimitFn(key: string): boolean {
+  const now = Date.now()
+  const record = checkOrderRateLimit.get(key)
+  if (!record || now > record.resetAt) {
+    checkOrderRateLimit.set(key, { count: 1, resetAt: now + CHECK_RATE_LIMIT_WINDOW })
+    return true
+  }
+  if (record.count >= CHECK_RATE_LIMIT_MAX) {
+    return false
+  }
+  record.count++
+  return true
+}
+
 /** GET: 查询邮箱对某作品的购买状态（purchased、hasLatest、交付链接等）。 */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -14,6 +32,11 @@ export async function GET(request: NextRequest) {
   }
   if (!workId) {
     return NextResponse.json({ error: "缺少 workId" }, { status: 400 })
+  }
+
+  const rateLimitKey = `${email}:${workId}`
+  if (!checkOrderRateLimitFn(rateLimitKey)) {
+    return NextResponse.json({ error: "请求过于频繁" }, { status: 429 })
   }
 
   const work = await prisma.work.findUnique({
@@ -51,14 +74,12 @@ export async function GET(request: NextRequest) {
     })
   }
 
-  // 判断是否已购买最新版本
   const paidVersionId = latestOrder.versionId
   const paidVersionLabel = latestOrder.version?.version || null
 
-  // 如果没有版本系统（无 WorkVersion 记录）或已购买最新版本
   const hasLatest =
-    !latestVersion || // 没有版本记录，老数据直接有权限
-    paidVersionId === latestVersion.id // 购买的就是最新版本
+    !latestVersion ||
+    paidVersionId === latestVersion.id
 
   if (hasLatest) {
     return NextResponse.json({
@@ -83,7 +104,6 @@ export async function GET(request: NextRequest) {
   const totalPaid = allPaidOrders.reduce((sum, o) => sum + Number(o.amount), 0)
   const upgradePrice = Math.max(0, currentPrice - totalPaid)
 
-  // 构建所有已购版本的交付列表（去重，同一版本只保留最新订单）
   const seenVersions = new Set<string>()
   const paidVersions: { version: string; figmaUrl: string | null; deliveryUrl: string | null }[] = []
   for (const o of allPaidOrders) {
