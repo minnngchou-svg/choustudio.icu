@@ -2,7 +2,7 @@
 /** 后台侧栏：导航分组、主题切换、站点名、收起态；需包在 ThemeProvider 内。 */
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useState, useEffect } from "react"
+import { useSyncExternalStore } from "react"
 import { useTheme } from "next-themes"
 import { defaultNav } from "@/lib/nav-config"
 import { defaultSiteName } from "@/lib/page-copy"
@@ -10,6 +10,10 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { signOut } from "next-auth/react"
+
+const emptySubscribe = () => () => {}
+const getSnapshot = () => true
+const getServerSnapshot = () => false
 
 const navGroups = [
   {
@@ -76,8 +80,7 @@ export function AdminSidebar({
 }) {
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  const mounted = useSyncExternalStore(emptySubscribe, getSnapshot, getServerSnapshot)
   const displayName = siteName.trim() || defaultSiteName
   const firstChar = getFirstCharacter(displayName)
 

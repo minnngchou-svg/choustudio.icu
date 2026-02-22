@@ -10,6 +10,16 @@ const MAX_WIDTH = 400
 const DEFAULT_WIDTH = 256
 const COLLAPSED_WIDTH = 64
 
+function getStoredWidth(): number {
+  if (typeof window === "undefined") return DEFAULT_WIDTH
+  const stored = localStorage.getItem(STORAGE_KEY)
+  if (stored) {
+    const w = parseInt(stored, 10)
+    if (w >= MIN_WIDTH && w <= MAX_WIDTH) return w
+  }
+  return DEFAULT_WIDTH
+}
+
 export function AdminDashboardClient({
   children,
   siteName,
@@ -18,17 +28,9 @@ export function AdminDashboardClient({
   siteName: string
 }) {
   const [collapsed, setCollapsed] = useState(false)
-  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_WIDTH)
+  const [sidebarWidth, setSidebarWidth] = useState(getStoredWidth)
   const [isDragging, setIsDragging] = useState(false)
   const dragRef = useRef(false)
-
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      const w = parseInt(stored, 10)
-      if (w >= MIN_WIDTH && w <= MAX_WIDTH) setSidebarWidth(w)
-    }
-  }, [])
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (collapsed) return

@@ -1,6 +1,6 @@
 import { getSettingsRow } from "@/lib/settings-db"
 import { defaultNav, type NavConfig } from "@/lib/nav-config"
-import { defaultPageCopy, defaultSiteName, normalizeSiteName, type PageCopy } from "@/lib/page-copy"
+import { defaultPageCopy, normalizeSiteName, type PageCopy } from "@/lib/page-copy"
 import type { SocialLinks } from "@/lib/social-links"
 import { DEFAULT_THEME, type ThemeConfig } from "@/lib/theme-presets"
 

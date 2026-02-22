@@ -16,6 +16,16 @@ const MIN_WIDTH = 160
 const MAX_WIDTH = 320
 const DEFAULT_WIDTH = 200
 
+function getStoredWidth(): number {
+  if (typeof window === "undefined") return DEFAULT_WIDTH
+  const stored = localStorage.getItem(STORAGE_KEY)
+  if (stored) {
+    const w = parseInt(stored, 10)
+    if (w >= MIN_WIDTH && w <= MAX_WIDTH) return w
+  }
+  return DEFAULT_WIDTH
+}
+
 export default function FrontendLayoutClient({
   initial,
   children,
@@ -23,17 +33,9 @@ export default function FrontendLayoutClient({
   initial: FrontendSettings
   children: React.ReactNode
 }) {
-  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_WIDTH)
+  const [sidebarWidth, setSidebarWidth] = useState(getStoredWidth)
   const [isDragging, setIsDragging] = useState(false)
   const dragRef = useRef(false)
-
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      const w = parseInt(stored, 10)
-      if (w >= MIN_WIDTH && w <= MAX_WIDTH) setSidebarWidth(w)
-    }
-  }, [])
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()

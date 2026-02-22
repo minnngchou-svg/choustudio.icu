@@ -15,8 +15,8 @@ export function ProseImageLightbox({ children }: ProseImageLightboxProps) {
   const [images, setImages] = useState<string[]>([])
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
+  const imagesRef = useRef<string[]>([])
 
-  /** 扫描容器内所有 img，收集 src 并绑定点击 */
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
@@ -30,18 +30,19 @@ export function ProseImageLightbox({ children }: ProseImageLightboxProps) {
       srcList.push(src)
       img.style.cursor = "zoom-in"
     })
-    setImages(srcList)
+    imagesRef.current = srcList
 
     const handleClick = (e: Event) => {
       const target = e.target as HTMLElement
       if (target.tagName !== "IMG") return
       const src = target.getAttribute("src")
       if (!src) return
-      const idx = srcList.indexOf(src)
+      const idx = imagesRef.current.indexOf(src)
       if (idx === -1) return
       e.preventDefault()
       e.stopPropagation()
       setCurrentIndex(idx)
+      setImages([...imagesRef.current])
       setLightboxOpen(true)
     }
 

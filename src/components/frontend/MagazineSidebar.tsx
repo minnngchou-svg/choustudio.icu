@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useState, useEffect } from "react"
+import { useSyncExternalStore } from "react"
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
@@ -10,6 +10,10 @@ import { Magnet } from "@/components/react-bits"
 import { useNavConfig } from "@/hooks/useNavConfig"
 import { defaultNav } from "@/lib/nav-config"
 import { getBeijingVolShort } from "@/lib/date-util"
+
+const emptySubscribe = () => () => {}
+const getSnapshot = () => true
+const getServerSnapshot = () => false
 
 const navKeys = [
   { key: "blog" as const, href: "/blog", icon: "ri-quill-pen-line" },
@@ -23,8 +27,7 @@ export function MagazineSidebar({ width = 200 }: { width?: number }) {
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
   const { nav } = useNavConfig()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  const mounted = useSyncExternalStore(emptySubscribe, getSnapshot, getServerSnapshot)
   const themeDarkLabel = defaultNav.themeDarkLabel ?? "暗色模式"
   const themeLightLabel = defaultNav.themeLightLabel ?? "亮色模式"
   const themeLabel = mounted ? (theme === "dark" ? themeLightLabel : themeDarkLabel) : themeDarkLabel

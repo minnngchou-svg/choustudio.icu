@@ -1,7 +1,7 @@
 "use client"
 /** BlockNote 富文本格式化工具栏：加粗/斜体/标题/颜色等，与编辑器状态同步。 */
 import type { CSSProperties } from "react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useLayoutEffect, useState } from "react"
 import type { BlockNoteEditor } from "@blocknote/core"
 import { cn } from "@/lib/utils"
 import {
@@ -17,7 +17,6 @@ const BLOCKNOTE_COLORS = [
 
 type BNColor = (typeof BLOCKNOTE_COLORS)[number]
 
-/** 颜色 → CSS 值映射（与 BlockNote 内置保持一致） */
 const COLOR_MAP: Record<BNColor, { text: string; bg: string }> = {
   default:  { text: "var(--bn-colors-default-text)",       bg: "var(--bn-colors-default-background)" },
   gray:     { text: "#9b9a97",  bg: "#ebeced" },
@@ -57,6 +56,90 @@ const INITIAL_STATE: ToolbarState = {
   backgroundColor: "default",
 }
 
+function Btn({
+  icon,
+  title,
+  active,
+  onClick,
+  className: extraCls,
+}: {
+  icon: string
+  title: string
+  active?: boolean
+  onClick: () => void
+  className?: string
+}) {
+  return (
+    <button
+      type="button"
+      title={title}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={onClick}
+      className={cn(
+        "flex items-center justify-center h-7 w-7 rounded text-sm transition-colors",
+        active
+          ? "bg-accent text-foreground"
+          : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+        extraCls,
+      )}
+    >
+      <i className={icon} />
+    </button>
+  )
+}
+
+function Sep() {
+  return <div className="w-px h-4 bg-border/50 mx-0.5 shrink-0" />
+}
+
+function ColorGrid({
+  label,
+  activeColor,
+  onSelect,
+  mode,
+}: {
+  label: string
+  activeColor: string
+  onSelect: (c: string) => void
+  mode: "text" | "bg"
+}) {
+  return (
+    <div>
+      <p className="text-xs text-muted-foreground mb-1.5">{label}</p>
+      <div className="grid grid-cols-5 gap-0.5">
+        {BLOCKNOTE_COLORS.map((c) => {
+          const isDefault = c === "default"
+          const colorStyle: CSSProperties =
+            mode === "text"
+              ? { color: isDefault ? "var(--foreground)" : COLOR_MAP[c].text }
+              : {
+                  color: "var(--foreground)",
+                  backgroundColor: isDefault ? undefined : COLOR_MAP[c].bg,
+                }
+          return (
+            <button
+              key={c}
+              type="button"
+              title={c}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => onSelect(c)}
+              className={cn(
+                "w-9 h-9 rounded-md text-base font-medium flex items-center justify-center transition-all",
+                activeColor === c
+                  ? "bg-accent outline-2 outline-primary -outline-offset-2"
+                  : "hover:bg-accent/50",
+              )}
+              style={colorStyle}
+            >
+              A
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function StaticFormattingToolbar({ editor }: { editor: BlockNoteEditor<any, any, any> }) {
   const [state, setState] = useState<ToolbarState>(INITIAL_STATE)
@@ -90,7 +173,8 @@ export function StaticFormattingToolbar({ editor }: { editor: BlockNoteEditor<an
     }
   }, [editor])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     syncState()
     const unsubSel = editor.onSelectionChange(syncState)
     const unsubChange = editor.onChange(syncState)
@@ -99,8 +183,6 @@ export function StaticFormattingToolbar({ editor }: { editor: BlockNoteEditor<an
       unsubChange()
     }
   }, [editor, syncState])
-
-  /* ---------- 操作函数 ---------- */
 
   const toggleStyle = useCallback(
     (style: string) => {
@@ -162,93 +244,8 @@ export function StaticFormattingToolbar({ editor }: { editor: BlockNoteEditor<an
     setShowLinkInput(false)
   }, [editor, linkUrl])
 
-  /* ---------- 渲染辅助 ---------- */
-
-  const Btn = ({
-    icon,
-    title,
-    active,
-    onClick,
-    className: extraCls,
-  }: {
-    icon: string
-    title: string
-    active?: boolean
-    onClick: () => void
-    className?: string
-  }) => (
-    <button
-      type="button"
-      title={title}
-      onMouseDown={(e) => e.preventDefault()}
-      onClick={onClick}
-      className={cn(
-        "flex items-center justify-center h-7 w-7 rounded text-sm transition-colors",
-        active
-          ? "bg-accent text-foreground"
-          : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-        extraCls,
-      )}
-    >
-      <i className={icon} />
-    </button>
-  )
-
-  const Sep = () => <div className="w-px h-4 bg-border/50 mx-0.5 shrink-0" />
-
-  /* ---------- 颜色选择器 ---------- */
-
-  const ColorGrid = ({
-    label,
-    activeColor,
-    onSelect,
-    mode,
-  }: {
-    label: string
-    activeColor: string
-    onSelect: (c: string) => void
-    mode: "text" | "bg"
-  }) => (
-    <div>
-      <p className="text-xs text-muted-foreground mb-1.5">{label}</p>
-      <div className="grid grid-cols-5 gap-0.5">
-        {BLOCKNOTE_COLORS.map((c) => {
-          const isDefault = c === "default"
-          const colorStyle: CSSProperties =
-            mode === "text"
-              ? { color: isDefault ? "var(--foreground)" : COLOR_MAP[c].text }
-              : {
-                  color: "var(--foreground)",
-                  backgroundColor: isDefault ? undefined : COLOR_MAP[c].bg,
-                }
-          return (
-            <button
-              key={c}
-              type="button"
-              title={c}
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => onSelect(c)}
-              className={cn(
-                "w-9 h-9 rounded-md text-base font-medium flex items-center justify-center transition-all",
-                activeColor === c
-                  ? "bg-accent outline-2 outline-primary -outline-offset-2"
-                  : "hover:bg-accent/50",
-              )}
-              style={colorStyle}
-            >
-              A
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-
-  /* ---------- 主渲染 ---------- */
-
   return (
     <div className="flex flex-wrap items-center gap-0.5 border-b border-border/60 bg-muted/20 px-2 py-1">
-      {/* 文字样式 */}
       <Btn icon="ri-bold" title="加粗" active={state.bold} onClick={() => toggleStyle("bold")} />
       <Btn icon="ri-italic" title="斜体" active={state.italic} onClick={() => toggleStyle("italic")} />
       <Btn icon="ri-underline" title="下划线" active={state.underline} onClick={() => toggleStyle("underline")} />
@@ -257,7 +254,6 @@ export function StaticFormattingToolbar({ editor }: { editor: BlockNoteEditor<an
 
       <Sep />
 
-      {/* 区块类型 */}
       <Btn
         icon="ri-text"
         title="正文"
@@ -285,7 +281,6 @@ export function StaticFormattingToolbar({ editor }: { editor: BlockNoteEditor<an
 
       <Sep />
 
-      {/* 列表 */}
       <Btn
         icon="ri-list-unordered"
         title="无序列表"
@@ -307,7 +302,6 @@ export function StaticFormattingToolbar({ editor }: { editor: BlockNoteEditor<an
 
       <Sep />
 
-      {/* 对齐 */}
       <Btn
         icon="ri-align-left"
         title="左对齐"
@@ -329,7 +323,6 @@ export function StaticFormattingToolbar({ editor }: { editor: BlockNoteEditor<an
 
       <Sep />
 
-      {/* 链接 */}
       <Popover open={showLinkInput} onOpenChange={setShowLinkInput}>
         <PopoverTrigger asChild>
           <button
@@ -369,7 +362,6 @@ export function StaticFormattingToolbar({ editor }: { editor: BlockNoteEditor<an
 
       <Sep />
 
-      {/* 颜色 */}
       <Popover>
         <PopoverTrigger asChild>
           <button

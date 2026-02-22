@@ -1,6 +1,6 @@
 "use client"
 /** 后台首页内容：统计卡片、快捷入口、最近订单、收入图表。 */
-import { useEffect, useState } from "react"
+import { useSyncExternalStore } from "react"
 import Link from "next/link"
 import {
   Area,
@@ -12,6 +12,10 @@ import {
   YAxis,
 } from "recharts"
 import { ChartContainer } from "@/components/ui/chart"
+
+const emptySubscribe = () => () => {}
+const getSnapshot = () => true
+const getServerSnapshot = () => false
 
 export interface DashboardStats {
   totalPosts: number
@@ -167,11 +171,7 @@ export default function DashboardContent({
   dailyRevenue,
   orderBlockForbidden = false,
 }: DashboardContentProps) {
-  const [chartMounted, setChartMounted] = useState(false)
-
-  useEffect(() => {
-    setChartMounted(true)
-  }, [])
+  const chartMounted = useSyncExternalStore(emptySubscribe, getSnapshot, getServerSnapshot)
 
   const revenueTrend = calcTrend(stats.monthlyRevenue, stats.prevMonthRevenue)
 
