@@ -13,6 +13,7 @@ export default function NewAccountProductPage() {
             const res = await fetch("/api/account-products", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify({
                     title: `新 AI 服务商品 ${ts}`,
                     slug: `ai-service-${ts}`,

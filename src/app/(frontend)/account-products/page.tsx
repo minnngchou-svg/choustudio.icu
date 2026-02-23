@@ -40,6 +40,11 @@ export default function AccountProductsPage() {
             .finally(() => setLoading(false))
     }, [])
 
+    // L4: 动态设置页面标题
+    useEffect(() => {
+        document.title = `${sectionLabel} | ${siteName || defaultSiteName}`
+    }, [sectionLabel, siteName])
+
     return (
         <div className="min-h-screen px-6 md:px-12 lg:px-16 py-12 pb-28 lg:pb-16">
             <FadeContent>

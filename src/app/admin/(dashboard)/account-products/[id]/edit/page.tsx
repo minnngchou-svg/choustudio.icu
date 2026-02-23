@@ -15,6 +15,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { TagCombobox } from "@/components/admin/TagCombobox"
 
 interface AccountProduct {
     id: string
@@ -69,6 +70,7 @@ export default function EditAccountProductPage() {
     const [warranty, setWarranty] = useState("")
     const [status, setStatus] = useState("DRAFT")
     const [categoryId, setCategoryId] = useState("")
+    const [tagIds, setTagIds] = useState<string[]>([])
 
     const loadData = useCallback(async () => {
         try {
@@ -93,6 +95,7 @@ export default function EditAccountProductPage() {
             setWarranty(prod.warranty || "")
             setStatus(prod.status)
             setCategoryId(prod.categoryId || "")
+            setTagIds(Array.isArray(prod.tags) ? prod.tags.map((t) => t.id) : [])
 
             if (catRes.ok) setCategories(await catRes.json())
         } finally {
@@ -124,6 +127,7 @@ export default function EditAccountProductPage() {
                 warranty: warranty || null,
                 status,
                 categoryId: categoryId || null,
+                tagIds,
             }
 
             const res = await fetch(`/api/account-products/${id}`, {
@@ -211,8 +215,12 @@ export default function EditAccountProductPage() {
                                 </SelectContent>
                             </Select>
                         </div>
+                        <div>
+                            <Label>标签</Label>
+                            <TagCombobox value={tagIds} onChange={setTagIds} />
+                        </div>
                     </div>
-                    <div className="col-span-2">
+                    <div>
                         <Label>简介</Label>
                         <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
                     </div>

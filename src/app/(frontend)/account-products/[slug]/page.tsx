@@ -56,6 +56,13 @@ export default function AccountProductDetailPage() {
 
     useEffect(() => { loadProduct() }, [loadProduct])
 
+    // L4: 动态设置页面标题
+    useEffect(() => {
+        if (product) {
+            document.title = `${product.title} | ${sectionLabel} | ${siteName || defaultSiteName}`
+        }
+    }, [product, sectionLabel, siteName])
+
     async function handleBuy() {
         if (!buyerName.trim() || !buyerEmail.trim()) {
             toast.error("请填写姓名和邮箱")
