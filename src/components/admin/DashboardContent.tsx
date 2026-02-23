@@ -13,7 +13,7 @@ import {
 } from "recharts"
 import { ChartContainer } from "@/components/ui/chart"
 
-const emptySubscribe = () => () => {}
+const emptySubscribe = () => () => { }
 const getSnapshot = () => true
 const getServerSnapshot = () => false
 
@@ -22,12 +22,14 @@ export interface DashboardStats {
   totalDesignWorks: number
   totalDevWorks: number
   totalTutorials: number
+  totalAccountProducts: number
   totalOrders: number
   monthlyRevenue: number
   monthPosts: number
   monthDesignWorks: number
   monthDevWorks: number
   monthTutorials: number
+  monthAccountProducts: number
   monthOrders: number
   prevMonthRevenue: number
 }
@@ -60,17 +62,18 @@ const quickActions = [
   { title: "设计作品", desc: "添加新的设计作品", href: "/admin/works/new?type=design", icon: "ri-palette-line" },
   { title: "开发作品", desc: "添加新的开发作品", href: "/admin/works/new?type=development", icon: "ri-code-s-slash-line" },
   { title: "视频教程", desc: "添加新的视频教程", href: "/admin/tutorials/new", icon: "ri-video-line" },
+  { title: "AI 服务", desc: "添加新的 AI 服务商品", href: "/admin/account-products/new", icon: "ri-robot-line" },
 ]
 
 const statusLabels: Record<string, { text: string; className: string; dotColor: string }> = {
-  PAID:      { text: "已支付", className: "text-emerald-600 dark:text-emerald-400", dotColor: "bg-emerald-500" },
-  PENDING:   { text: "待支付", className: "text-amber-600 dark:text-amber-400",     dotColor: "bg-amber-500" },
-  CANCELLED: { text: "已取消", className: "text-zinc-400 dark:text-zinc-500",        dotColor: "bg-zinc-400" },
-  REFUNDED:  { text: "已退款", className: "text-rose-600 dark:text-rose-400",        dotColor: "bg-rose-500" },
+  PAID: { text: "已支付", className: "text-emerald-600 dark:text-emerald-400", dotColor: "bg-emerald-500" },
+  PENDING: { text: "待支付", className: "text-amber-600 dark:text-amber-400", dotColor: "bg-amber-500" },
+  CANCELLED: { text: "已取消", className: "text-zinc-400 dark:text-zinc-500", dotColor: "bg-zinc-400" },
+  REFUNDED: { text: "已退款", className: "text-rose-600 dark:text-rose-400", dotColor: "bg-rose-500" },
 }
 
 const revenueChartConfig = {
-  paid:    { label: "已支付", color: "var(--color-foreground)" },
+  paid: { label: "已支付", color: "var(--color-foreground)" },
   pending: { label: "未支付", color: "var(--color-foreground)" },
 }
 
@@ -227,6 +230,13 @@ export default function DashboardContent({
           subtitle={`+${stats.monthTutorials} 本月`}
           icon="ri-video-line"
           href="/admin/tutorials"
+        />
+        <StatCard
+          title="AI 服务"
+          value={String(stats.totalAccountProducts)}
+          subtitle={`+${stats.monthAccountProducts} 本月`}
+          icon="ri-robot-line"
+          href="/admin/account-products"
         />
         <StatCard
           title="订单"

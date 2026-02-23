@@ -6,6 +6,7 @@ export type NavConfig = {
   blog?: string
   about?: string
   tutorials?: string
+  accountProducts?: string
   themeLightLabel?: string
   themeDarkLabel?: string
 }
@@ -17,6 +18,7 @@ export const defaultNav: NavConfig = {
   blog: "知识分享",
   about: "关于我",
   tutorials: "视频教程",
+  accountProducts: "AI 服务",
   themeLightLabel: "亮色模式",
   themeDarkLabel: "暗色模式",
 }

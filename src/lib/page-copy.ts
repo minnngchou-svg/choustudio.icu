@@ -4,6 +4,7 @@ export type PageCopy = {
   worksDevDesc?: string
   blogDesc?: string
   tutorialsDesc?: string
+  accountProductsDesc?: string
   aboutDesc?: string
   heroGreeting?: string
   heroPrefix?: string
@@ -16,6 +17,7 @@ export type PageCopy = {
   coverRatioWorksDev?: string
   coverRatioBlog?: string
   coverRatioTutorials?: string
+  coverRatioAccountProducts?: string
 }
 
 export const defaultPageCopy: PageCopy = {
@@ -23,6 +25,7 @@ export const defaultPageCopy: PageCopy = {
   worksDevDesc: "开源项目与开发作品展示",
   blogDesc: "分享设计思考、工具技巧与行业见解",
   tutorialsDesc: "视频类教材合集，包含 B 站、YouTube 等",
+  accountProductsDesc: "精选 AI 账号与服务，安全交付有保障",
   aboutDesc: "",
   heroGreeting: "Hey,",
   heroPrefix: "You're in ",
@@ -35,6 +38,7 @@ export const defaultPageCopy: PageCopy = {
   coverRatioWorksDev: "3:4",
   coverRatioBlog: "3:4",
   coverRatioTutorials: "3:4",
+  coverRatioAccountProducts: "3:4",
 }
 
 /** 默认网站描述（SEO meta description） */

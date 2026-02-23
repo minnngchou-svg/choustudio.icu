@@ -146,26 +146,28 @@ model Order {
 
 // ==================== 分类模型 ====================
 model Category {
-  id        String          @id @default(cuid())
-  name      String          @db.VarChar(100)
-  slug      String          @unique @db.VarChar(100)
-  type      CategoryType
-  posts     Post[]
-  works     Work[]
-  tutorials VideoTutorial[]
+  id              String           @id @default(cuid())
+  name            String           @db.VarChar(100)
+  slug            String           @unique @db.VarChar(100)
+  type            CategoryType
+  posts           Post[]
+  works           Work[]
+  tutorials       VideoTutorial[]
+  accountProducts AccountProduct[]
 }
 
 // ==================== 标签模型 ====================
 model Tag {
-  id        String          @id @default(cuid())
-  name      String          @unique @db.VarChar(50)
-  posts     Post[]
-  works     Work[]
-  tutorials VideoTutorial[]
+  id              String           @id @default(cuid())
+  name            String           @unique @db.VarChar(50)
+  posts           Post[]
+  works           Work[]
+  tutorials       VideoTutorial[]
+  accountProducts AccountProduct[]
 }
 
 // ==================== 媒体文件模型 ====================
-// 归属类型：文章 / 设计作品 / 开发作品 / 视频教程
+// 归属类型：文章 / 设计作品 / 开发作品 / 视频教程 / AI 服务
 model Media {
   id         String   @id @default(cuid())
   name       String   @db.VarChar(255)
@@ -174,8 +176,8 @@ model Media {
   size       Int
   width      Int?
   height     Int?
-  entityType String   @db.VarChar(50) // POST | WORK_DESIGN | WORK_DEVELOPMENT | TUTORIAL
-  entityId   String   @db.VarChar(64) // Post.id / Work.id / VideoTutorial.id
+  entityType String   @db.VarChar(50) // POST | WORK_DESIGN | WORK_DEVELOPMENT | TUTORIAL | ACCOUNT_PRODUCT
+  entityId   String   @db.VarChar(64) // Post.id / Work.id / VideoTutorial.id / AccountProduct.id
   createdAt  DateTime @default(now())
 
   @@index([type])
@@ -216,6 +218,59 @@ model VideoTutorial {
   @@index([categoryId])
 }
 
+// ==================== AI 服务 / 账号商品模型 ====================
+model AccountProduct {
+  id             String               @id @default(cuid())
+  title          String               @db.VarChar(255)
+  slug           String               @unique @db.VarChar(255)
+  description    String?              @db.Text          // 商品描述（HTML/纯文本）
+  content        Json?                                  // 详情（Plate JSON，含安全说明等）
+  coverImage     String?              @db.Text
+  coverRatio     String               @default("3:4") @db.VarChar(10)
+  accountType    String               @db.VarChar(50)   // "gemini" | "chatgpt" | "cursor" | "claude" | "gmail" 等
+  price          Decimal              @db.Decimal(10, 2)
+  originalPrice  Decimal?             @db.Decimal(10, 2) // 原价（划线价）
+  stock          Int                  @default(0)       // 库存
+  validDays      Int?                                    // 有效天数（null = 永久）
+  features       Json?                                   // 权益列表 JSON: ["GPT-4 访问", "无限用量"]
+  securityNote   String?              @db.Text           // 账号安全说明
+  transferGuide  String?              @db.Text           // 转移/使用流程说明
+  warranty       String?              @db.Text           // 售后保障说明
+  status         AccountProductStatus @default(DRAFT)
+  categoryId     String?
+  category       Category?            @relation(fields: [categoryId], references: [id])
+  tags           Tag[]
+  orders         AccountOrder[]
+  sortOrder      Int                  @default(0)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@index([status])
+  @@index([accountType])
+  @@index([categoryId])
+}
+
+// ==================== 账号商品订单模型 ====================
+model AccountOrder {
+  id               String         @id @default(cuid())
+  orderNo          String         @unique @db.VarChar(64)
+  accountProductId String
+  accountProduct   AccountProduct @relation(fields: [accountProductId], references: [id])
+  amount           Decimal        @db.Decimal(10, 2)
+  status           OrderStatus    @default(PENDING)
+  buyerEmail       String         @db.VarChar(255)
+  buyerName        String?        @db.VarChar(100)
+  deliveryInfo     Json?                                  // 账号交付信息 { account, password, notes }
+  deliveredAt      DateTime?
+  paidAt           DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([status])
+  @@index([accountProductId])
+  @@index([buyerEmail])
+}
+
 // ==================== 枚举类型 ====================
 enum PostStatus {
   DRAFT
@@ -227,6 +282,13 @@ enum WorkStatus {
   DRAFT
   PUBLISHED
   PRIVATE
+}
+
+enum AccountProductStatus {
+  DRAFT
+  PUBLISHED
+  PRIVATE
+  SOLD_OUT   // 售罄
 }
 
 enum OrderStatus {
@@ -243,4 +305,5 @@ enum CategoryType {
   DESIGN
   DEVELOPMENT
   TUTORIAL
+  ACCOUNT    // AI 服务 / 账号商品
 }

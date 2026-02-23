@@ -11,7 +11,7 @@ import { useNavConfig } from "@/hooks/useNavConfig"
 import { defaultNav } from "@/lib/nav-config"
 import { getBeijingVolShort } from "@/lib/date-util"
 
-const emptySubscribe = () => () => {}
+const emptySubscribe = () => () => { }
 const getSnapshot = () => true
 const getServerSnapshot = () => false
 
@@ -20,6 +20,7 @@ const navKeys = [
   { key: "worksDesign" as const, href: "/works/design", icon: "ri-palette-line" },
   { key: "worksDev" as const, href: "/works/development", icon: "ri-code-s-slash-line" },
   { key: "tutorials" as const, href: "/tutorials", icon: "ri-video-line" },
+  { key: "accountProducts" as const, href: "/account-products", icon: "ri-robot-line" },
   { key: "about" as const, href: "/about", icon: "ri-user-line" },
 ]
 

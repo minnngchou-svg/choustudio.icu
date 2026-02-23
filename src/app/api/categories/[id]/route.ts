@@ -51,14 +51,14 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
   const existing = await prisma.category.findUnique({
     where: { id },
     include: {
-      _count: { select: { posts: true, works: true, tutorials: true } },
+      _count: { select: { posts: true, works: true, tutorials: true, accountProducts: true } },
     },
   })
   if (!existing) {
     return NextResponse.json({ error: "分类不存在" }, { status: 404 })
   }
 
-  const relatedCount = existing._count.posts + existing._count.works + existing._count.tutorials
+  const relatedCount = existing._count.posts + existing._count.works + existing._count.tutorials + existing._count.accountProducts
 
   if (relatedCount > 0) {
     // 解除关联后再删除
@@ -69,6 +69,11 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
       })
     } else if (existing.type === "TUTORIAL") {
       await prisma.videoTutorial.updateMany({
+        where: { categoryId: id },
+        data: { categoryId: null },
+      })
+    } else if (existing.type === "ACCOUNT") {
+      await prisma.accountProduct.updateMany({
         where: { categoryId: id },
         data: { categoryId: null },
       })

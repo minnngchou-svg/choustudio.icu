@@ -22,6 +22,7 @@ export default async function AdminDashboardPage() {
     totalDesignWorks,
     totalDevWorks,
     totalTutorials,
+    totalAccountProducts,
     totalOrders,
     monthlyRevenueAgg,
     prevMonthRevenueAgg,
@@ -29,6 +30,7 @@ export default async function AdminDashboardPage() {
     monthDesignWorks,
     monthDevWorks,
     monthTutorials,
+    monthAccountProducts,
     monthOrders,
     recentOrdersRaw,
     chartOrdersLast30Days,
@@ -37,6 +39,7 @@ export default async function AdminDashboardPage() {
     prisma.work.count({ where: { workType: "DESIGN" } }),
     prisma.work.count({ where: { workType: "DEVELOPMENT" } }),
     prisma.videoTutorial.count(),
+    prisma.accountProduct.count(),
     isViewer ? 0 : prisma.order.count(),
     isViewer ? { _sum: { amount: null } } : prisma.order.aggregate({
       where: { status: "PAID", paidAt: { gte: startOfMonth } },
@@ -50,6 +53,7 @@ export default async function AdminDashboardPage() {
     prisma.work.count({ where: { workType: "DESIGN", createdAt: { gte: startOfMonth } } }),
     prisma.work.count({ where: { workType: "DEVELOPMENT", createdAt: { gte: startOfMonth } } }),
     prisma.videoTutorial.count({ where: { createdAt: { gte: startOfMonth } } }),
+    prisma.accountProduct.count({ where: { createdAt: { gte: startOfMonth } } }),
     isViewer ? 0 : prisma.order.count({ where: { createdAt: { gte: startOfMonth } } }),
     isViewer ? [] : prisma.order.findMany({
       take: 5,
@@ -75,6 +79,7 @@ export default async function AdminDashboardPage() {
     totalDesignWorks,
     totalDevWorks,
     totalTutorials,
+    totalAccountProducts,
     totalOrders: isViewer ? 0 : totalOrders,
     monthlyRevenue,
     prevMonthRevenue,
@@ -82,6 +87,7 @@ export default async function AdminDashboardPage() {
     monthDesignWorks,
     monthDevWorks,
     monthTutorials,
+    monthAccountProducts,
     monthOrders: isViewer ? 0 : monthOrders,
   }
 
@@ -89,13 +95,13 @@ export default async function AdminDashboardPage() {
   const recentOrders: RecentOrder[] = isViewer
     ? []
     : (recentOrdersRaw as { id: string; orderNo: string; status: string; amount: unknown; createdAt: Date; work: { title: string } }[]).map((o) => ({
-        id: o.id,
-        orderNo: o.orderNo,
-        status: o.status,
-        amount: Number(o.amount),
-        createdAt: o.createdAt.toISOString(),
-        workTitle: o.work.title,
-      }))
+      id: o.id,
+      orderNo: o.orderNo,
+      status: o.status,
+      amount: Number(o.amount),
+      createdAt: o.createdAt.toISOString(),
+      workTitle: o.work.title,
+    }))
 
   // ---- 构建近 30 天每日收入（VIEWER 全为 0） ----
   const dailyMap = new Map<string, { paid: number; pending: number }>()

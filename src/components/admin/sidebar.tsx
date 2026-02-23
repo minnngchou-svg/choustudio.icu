@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { signOut } from "next-auth/react"
 
-const emptySubscribe = () => () => {}
+const emptySubscribe = () => () => { }
 const getSnapshot = () => true
 const getServerSnapshot = () => false
 
@@ -29,6 +29,7 @@ const navGroups = [
       { name: "设计作品", href: "/admin/works/design", icon: "ri-palette-line" },
       { name: "开发作品", href: "/admin/works/development", icon: "ri-code-s-slash-line" },
       { name: "视频教程", href: "/admin/tutorials", icon: "ri-video-line" },
+      { name: "AI 服务", href: "/admin/account-products", icon: "ri-robot-line" },
     ],
   },
   {

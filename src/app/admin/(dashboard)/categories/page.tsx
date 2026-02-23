@@ -68,6 +68,8 @@ function getEditLink(item: RelatedItem): string {
       return `/admin/works/${item.id}/edit`
     case "tutorial":
       return `/admin/tutorials/${item.id}/edit`
+    case "account":
+      return `/admin/account-products/${item.id}/edit`
     default:
       return "#"
   }
@@ -79,6 +81,7 @@ function getEntityLabel(entityType: string): string {
     case "design": return "设计"
     case "development": return "开发"
     case "tutorial": return "教程"
+    case "account": return "AI 服务"
     default: return ""
   }
 }
@@ -264,14 +267,14 @@ export default function CategoriesPage() {
 
   const catBatchActions: BatchAction[] = selectedCatIds.size > 0
     ? [{
-        label: "删除",
-        icon: "ri-delete-bin-line",
-        variant: "destructive" as const,
-        onClick: handleBatchDeleteCategories,
-        needConfirm: true,
-        confirmTitle: `确定删除选中的 ${selectedCatIds.size} 个分类？`,
-        confirmDescription: "其下内容将变为未分类",
-      }]
+      label: "删除",
+      icon: "ri-delete-bin-line",
+      variant: "destructive" as const,
+      onClick: handleBatchDeleteCategories,
+      needConfirm: true,
+      confirmTitle: `确定删除选中的 ${selectedCatIds.size} 个分类？`,
+      confirmDescription: "其下内容将变为未分类",
+    }]
     : []
 
   // ===== 标签操作 =====
@@ -373,6 +376,7 @@ export default function CategoriesPage() {
                   { label: "设计作品", value: "DESIGN" },
                   { label: "开发作品", value: "DEVELOPMENT" },
                   { label: "视频教程", value: "TUTORIAL" },
+                  { label: "AI 服务", value: "ACCOUNT" },
                 ],
               }]}
               filterValues={{ type: catTypeFilter }}
@@ -422,9 +426,10 @@ export default function CategoriesPage() {
                           <Badge variant="secondary">
                             {cat.type === "POST" ? "文章"
                               : cat.type === "DESIGN" ? "设计作品"
-                              : cat.type === "DEVELOPMENT" ? "开发作品"
-                              : cat.type === "TUTORIAL" ? "视频教程"
-                              : "作品"}
+                                : cat.type === "DEVELOPMENT" ? "开发作品"
+                                  : cat.type === "TUTORIAL" ? "视频教程"
+                                    : cat.type === "ACCOUNT" ? "AI 服务"
+                                      : "作品"}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -549,6 +554,7 @@ export default function CategoriesPage() {
                   <SelectItem value="DESIGN">设计作品</SelectItem>
                   <SelectItem value="DEVELOPMENT">开发作品</SelectItem>
                   <SelectItem value="TUTORIAL">视频教程</SelectItem>
+                  <SelectItem value="ACCOUNT">AI 服务</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -769,9 +775,9 @@ function TagsTableSection({
 
   const batchActions: BatchAction[] = selectedIds.size > 0
     ? [{
-        label: "删除", icon: "ri-delete-bin-line", variant: "destructive" as const, onClick: handleBatchDeleteTags,
-        needConfirm: true, confirmTitle: `确定删除选中的 ${selectedIds.size} 个标签？`, confirmDescription: "删除后不可恢复",
-      }]
+      label: "删除", icon: "ri-delete-bin-line", variant: "destructive" as const, onClick: handleBatchDeleteTags,
+      needConfirm: true, confirmTitle: `确定删除选中的 ${selectedIds.size} 个标签？`, confirmDescription: "删除后不可恢复",
+    }]
     : []
 
   return (

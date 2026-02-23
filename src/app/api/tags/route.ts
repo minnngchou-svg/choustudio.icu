@@ -8,10 +8,11 @@ export async function GET() {
   const list = await prisma.tag.findMany({
     orderBy: { name: "asc" },
     include: {
-      _count: { select: { posts: true, works: true, tutorials: true } },
+      _count: { select: { posts: true, works: true, tutorials: true, accountProducts: true } },
       posts: { select: { id: true, title: true }, take: 20 },
       works: { select: { id: true, title: true, workType: true }, take: 20 },
       tutorials: { select: { id: true, title: true }, take: 20 },
+      accountProducts: { select: { id: true, title: true }, take: 20 },
     },
   })
 
@@ -25,11 +26,12 @@ export async function GET() {
           entityType: w.workType === "DEVELOPMENT" ? "development" : "design",
         })),
         ...t.tutorials.map((v) => ({ id: v.id, title: v.title, entityType: "tutorial" as const })),
+        ...t.accountProducts.map((a) => ({ id: a.id, title: a.title, entityType: "account" as const })),
       ]
       return {
         id: t.id,
         name: t.name,
-        count: t._count.posts + t._count.works + t._count.tutorials,
+        count: t._count.posts + t._count.works + t._count.tutorials + t._count.accountProducts,
         items,
       }
     }),

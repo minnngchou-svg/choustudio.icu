@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
 
-const VALID_TYPES = ["POST", "DESIGN", "DEVELOPMENT", "TUTORIAL", "WORK"] as const
+const VALID_TYPES = ["POST", "DESIGN", "DEVELOPMENT", "TUTORIAL", "WORK", "ACCOUNT"] as const
 
 /** 将名称转为 slug：小写、空格转连字符、去特殊字符。 */
 function toSlug(name: string): string {
@@ -20,10 +20,11 @@ function toSlug(name: string): string {
 
 type CategoryWithRelations = {
   type: string
-  _count: { posts: number; works: number; tutorials: number }
+  _count: { posts: number; works: number; tutorials: number; accountProducts: number }
   posts: { id: string; title: string }[]
   works: { id: string; title: string; workType: string }[]
   tutorials: { id: string; title: string }[]
+  accountProducts: { id: string; title: string }[]
 }
 
 function getCategoryCount(c: CategoryWithRelations): number {
@@ -36,6 +37,8 @@ function getCategoryCount(c: CategoryWithRelations): number {
       return c._count.works
     case "TUTORIAL":
       return c._count.tutorials
+    case "ACCOUNT":
+      return c._count.accountProducts
     default:
       return 0
   }
@@ -51,6 +54,8 @@ function getCategoryItems(c: CategoryWithRelations): { id: string; title: string
       return c.works.map((w) => ({ id: w.id, title: w.title, entityType: w.workType === "DEVELOPMENT" ? "development" : "design" }))
     case "TUTORIAL":
       return c.tutorials.map((t) => ({ id: t.id, title: t.title, entityType: "tutorial" }))
+    case "ACCOUNT":
+      return c.accountProducts.map((a) => ({ id: a.id, title: a.title, entityType: "account" }))
     default:
       return []
   }
@@ -70,10 +75,11 @@ export async function GET(request: NextRequest) {
     where,
     orderBy: { name: "asc" },
     include: {
-      _count: { select: { posts: true, works: true, tutorials: true } },
+      _count: { select: { posts: true, works: true, tutorials: true, accountProducts: true } },
       posts: { select: { id: true, title: true }, take: 20 },
       works: { select: { id: true, title: true, workType: true }, take: 20 },
       tutorials: { select: { id: true, title: true }, take: 20 },
+      accountProducts: { select: { id: true, title: true }, take: 20 },
     },
   })
 
