@@ -9,6 +9,8 @@ export async function GET(
     _request: NextRequest,
     { params }: { params: Promise<{ id: string }> },
 ) {
+    const check = await requireAdmin()
+    if (!check.authorized) return check.response
     const { id } = await params
     try {
         const product = await prisma.accountProduct.findUnique({

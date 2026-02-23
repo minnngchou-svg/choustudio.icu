@@ -138,9 +138,9 @@ export default function AccountProductsPage() {
                                         )}
                                         {/* 价格 */}
                                         <div className="mt-auto pt-3 flex items-baseline gap-2">
-                                            <span className="text-lg font-bold text-foreground">¥{item.price}</span>
+                                            <span className="text-lg font-bold text-foreground">¥{Number(item.price).toFixed(2)}</span>
                                             {item.originalPrice != null && item.originalPrice > item.price && (
-                                                <span className="text-xs text-muted-foreground line-through">¥{item.originalPrice}</span>
+                                                <span className="text-xs text-muted-foreground line-through">¥{Number(item.originalPrice).toFixed(2)}</span>
                                             )}
                                         </div>
                                         {/* 分类/标签 */}

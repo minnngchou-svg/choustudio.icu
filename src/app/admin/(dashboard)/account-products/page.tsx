@@ -84,13 +84,15 @@ export default function AccountProductsPage() {
             label: "删除", icon: "ri-delete-bin-line", variant: "destructive" as const, onClick: handleBatchDelete,
             needConfirm: true, confirmTitle: `确定删除选中的 ${tc.selectedIds.size} 个商品？`, confirmDescription: "删除后不可恢复",
         },
-    ], [tc.selectedIds])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    ], [tc.selectedIds.size])
 
     async function load() {
         setLoading(true)
         try {
             const res = await fetch("/api/account-products?all=1", { credentials: "include" })
-            if (!res.ok) { router.push("/admin/login"); return }
+            if (res.status === 401 || res.status === 403) { router.push("/admin/login"); return }
+            if (!res.ok) { toast.error("加载失败"); return }
             const data = await res.json()
             setList(Array.isArray(data) ? data : [])
         } finally { setLoading(false) }
@@ -108,12 +110,10 @@ export default function AccountProductsPage() {
     }
 
     function handleReorder(reordered: AccountProduct[]) {
-        const prev = list
         setList(reordered)
-        reordered.filter((item, idx) => {
-            const old = prev.find((t) => t.id === item.id)
-            return old && old.sortOrder !== idx
-        }).forEach((item) => saveSort(item.id, item.sortOrder))
+        reordered.forEach((item, idx) => {
+            if (item.sortOrder !== idx) saveSort(item.id, idx)
+        })
     }
 
     async function createDraft() {

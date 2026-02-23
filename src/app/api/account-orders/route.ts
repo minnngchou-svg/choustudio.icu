@@ -7,9 +7,20 @@ import { normalizeSiteName } from "@/lib/page-copy"
 
 export const dynamic = "force-dynamic"
 
+// NOTE (M1): 内存级限流器在多实例部署时各实例独立计数，生产环境建议迁移至 Redis
 const orderRateLimit = new Map<string, { count: number; resetAt: number }>()
 const RATE_LIMIT_WINDOW = 60 * 1000
 const RATE_LIMIT_MAX = 5
+
+// 定期清理过期记录，防止内存泄漏 (M2)
+if (typeof setInterval !== "undefined") {
+    setInterval(() => {
+        const now = Date.now()
+        for (const [key, val] of orderRateLimit) {
+            if (now > val.resetAt) orderRateLimit.delete(key)
+        }
+    }, 5 * 60 * 1000)
+}
 
 function checkRateLimit(key: string): boolean {
     const now = Date.now()
@@ -34,7 +45,7 @@ function generateOrderNo(): string {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json()
-        const { accountProductId, buyerEmail, buyerName } = body
+        const { accountProductId, buyerEmail, buyerName, buyerContact } = body
 
         if (!accountProductId || typeof accountProductId !== "string") {
             return NextResponse.json({ error: "缺少 accountProductId" }, { status: 400 })
@@ -61,9 +72,16 @@ export async function POST(request: NextRequest) {
         const amount = Number(product.price)
         const orderNo = generateOrderNo()
 
-        // 创建订单，扣减库存
-        const [order] = await prisma.$transaction([
-            prisma.accountOrder.create({
+        // 乐观锁：仅当 stock > 0 时扣减，防止并发超卖
+        const order = await prisma.$transaction(async (tx) => {
+            const updated = await tx.accountProduct.updateMany({
+                where: { id: accountProductId, stock: { gt: 0 } },
+                data: { stock: { decrement: 1 } },
+            })
+            if (updated.count === 0) {
+                throw new Error("SOLD_OUT")
+            }
+            return tx.accountOrder.create({
                 data: {
                     orderNo,
                     accountProductId,
@@ -71,13 +89,10 @@ export async function POST(request: NextRequest) {
                     status: "PENDING",
                     buyerEmail: normalizedEmail,
                     buyerName: buyerName?.trim() || null,
+                    ...(buyerContact ? { deliveryInfo: { buyerContact: buyerContact.trim() } } : {}),
                 },
-            }),
-            prisma.accountProduct.update({
-                where: { id: accountProductId },
-                data: { stock: { decrement: 1 } },
-            }),
-        ])
+            })
+        })
 
         // 发送订单邮件（异步）
         const settings = await prisma.settings.findUnique({ where: { id: "settings" } })
@@ -100,6 +115,9 @@ export async function POST(request: NextRequest) {
             amount,
         })
     } catch (e) {
+        if (e instanceof Error && e.message === "SOLD_OUT") {
+            return NextResponse.json({ error: "商品已售罄" }, { status: 400 })
+        }
         const message = e instanceof Error ? e.message : "创建订单失败"
         return NextResponse.json({ error: "创建订单失败", detail: message }, { status: 500 })
     }

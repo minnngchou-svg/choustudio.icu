@@ -9,7 +9,7 @@ import { createWxPayFromConfig } from "@/lib/wechatpay"
 
 export const dynamic = "force-dynamic"
 
-/** GET: 管理员查看订单详情。仅 ADMIN 可访问，VIEWER 返回 403。 */
+/** GET: 管理员查看订单详情。仅 ADMIN 可访问。 */
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/** GET: ?orderNo= 查单笔；?all=1 管理员查全部。仅 ADMIN 可访问，VIEWER 返回 403。 */
+/** GET: ?orderNo= 查单笔；?all=1 管理员查全部。仅 ADMIN 可访问。 */
 export async function GET(request: NextRequest) {
   const check = await requireAdmin()
   if (!check.authorized) return check.response

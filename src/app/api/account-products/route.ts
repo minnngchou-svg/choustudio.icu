@@ -85,7 +85,15 @@ export async function POST(request: NextRequest) {
                 { status: 400 },
             )
         }
-
+        if (!/^[a-z0-9][a-z0-9-]*$/.test(slug.trim())) {
+            return NextResponse.json({ error: "slug 格式不正确，仅允许小写字母、数字和连字符" }, { status: 400 })
+        }
+        if (price != null && (typeof price !== "number" || price < 0)) {
+            return NextResponse.json({ error: "价格不能为负数" }, { status: 400 })
+        }
+        if (stock != null && (typeof stock !== "number" || stock < 0 || !Number.isInteger(stock))) {
+            return NextResponse.json({ error: "库存必须为非负整数" }, { status: 400 })
+        }
         const existing = await prisma.accountProduct.findUnique({ where: { slug } })
         if (existing) {
             return NextResponse.json({ error: "slug 已存在" }, { status: 400 })

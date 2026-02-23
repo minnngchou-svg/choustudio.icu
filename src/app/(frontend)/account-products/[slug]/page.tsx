@@ -2,7 +2,7 @@
 /** AI 服务商品详情页：展示商品信息、权益、购买流程。 */
 import Link from "next/link"
 import { useState, useEffect, useCallback } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
 import { toast } from "sonner"
 import { FadeContent, GlowBorder } from "@/components/react-bits"
 import { CoverImage } from "@/components/frontend/CoverImage"
@@ -32,7 +32,6 @@ type AccountProduct = {
 
 export default function AccountProductDetailPage() {
     const { slug } = useParams<{ slug: string }>()
-    const router = useRouter()
     const { nav, siteName } = useNavConfig()
     const sectionLabel = nav.accountProducts ?? defaultNav.accountProducts ?? "AI 服务"
     const [product, setProduct] = useState<AccountProduct | null>(null)
@@ -234,9 +233,9 @@ export default function AccountProductDetailPage() {
                             <GlowBorder className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-6">
                                 {/* 价格 */}
                                 <div className="flex items-baseline gap-2 mb-4">
-                                    <span className="text-3xl font-bold text-foreground">¥{product.price}</span>
+                                    <span className="text-3xl font-bold text-foreground">¥{Number(product.price).toFixed(2)}</span>
                                     {product.originalPrice != null && product.originalPrice > product.price && (
-                                        <span className="text-sm text-muted-foreground line-through">¥{product.originalPrice}</span>
+                                        <span className="text-sm text-muted-foreground line-through">¥{Number(product.originalPrice).toFixed(2)}</span>
                                     )}
                                 </div>
 

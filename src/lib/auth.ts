@@ -35,6 +35,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!isPasswordValid) {
           return null
         }
+        if (user.role !== "ADMIN") {
+          console.error("[auth] 非管理员用户尝试登录后台:", user.id, user.role)
+          return null
+        }
         return {
           id: user.id,
           email: user.email,

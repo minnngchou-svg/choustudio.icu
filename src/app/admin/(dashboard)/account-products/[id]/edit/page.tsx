@@ -73,8 +73,8 @@ export default function EditAccountProductPage() {
     const loadData = useCallback(async () => {
         try {
             const [prodRes, catRes] = await Promise.all([
-                fetch(`/api/account-products/${id}`),
-                fetch("/api/categories?type=ACCOUNT"),
+                fetch(`/api/account-products/${id}`, { credentials: "include" }),
+                fetch("/api/categories?type=ACCOUNT", { credentials: "include" }),
             ])
             if (!prodRes.ok) { toast.error("加载失败"); return }
             const prod: AccountProduct = await prodRes.json()
@@ -129,6 +129,7 @@ export default function EditAccountProductPage() {
             const res = await fetch(`/api/account-products/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify(body),
             })
             if (res.ok) {
