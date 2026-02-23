@@ -233,6 +233,7 @@ enum OrderStatus {
   PENDING    // 待支付
   PAID       // 已支付（数字商品自动交付）
   CANCELLED  // 已取消
+  REFUNDING  // 退款中
   REFUNDED   // 已退款
 }
 

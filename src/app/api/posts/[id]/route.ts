@@ -10,24 +10,29 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  const { id } = await params
-  const post = await prisma.post.findUnique({
-    where: { id },
-    include: {
-      category: true,
-      tags: true,
-      author: { select: { id: true, name: true, email: true, avatar: true } },
-    },
-  })
-  if (!post) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  try {
+    const session = await auth()
+    const { id } = await params
+    const post = await prisma.post.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        tags: true,
+        author: { select: { id: true, name: true, email: true, avatar: true } },
+      },
+    })
+    if (!post) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 })
+    }
+    const isAdminRole = (session?.user as { role?: string })?.role === "ADMIN"
+    if (post.status !== "PUBLISHED" && !isAdminRole) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 })
+    }
+    return NextResponse.json(post)
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "查询失败"
+    return NextResponse.json({ error: "查询失败", detail: message }, { status: 500 })
   }
-  const isAdminRole = (session?.user as { role?: string })?.role === "ADMIN"
-  if (post.status !== "PUBLISHED" && !isAdminRole) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 })
-  }
-  return NextResponse.json(post)
 }
 
 export async function PUT(
@@ -36,46 +41,52 @@ export async function PUT(
 ) {
   const check = await requireAdmin()
   if (!check.authorized) return check.response
-  const { id } = await params
-  const body = await request.json()
-  const {
-    title,
-    slug,
-    content,
-    excerpt,
-    coverImage,
-    coverRatio,
-    status,
-    categoryId,
-    sortOrder,
-    tagIds,
-  } = body
 
-  const normalizeStatus = (s: string | undefined) => {
-    if (s === "PUBLISHED") return "PUBLISHED"
-    if (s === "PRIVATE") return "PRIVATE"
-    return "DRAFT"
+  try {
+    const { id } = await params
+    const body = await request.json()
+    const {
+      title,
+      slug,
+      content,
+      excerpt,
+      coverImage,
+      coverRatio,
+      status,
+      categoryId,
+      sortOrder,
+      tagIds,
+    } = body
+
+    const normalizeStatus = (s: string | undefined) => {
+      if (s === "PUBLISHED") return "PUBLISHED"
+      if (s === "PRIVATE") return "PRIVATE"
+      return "DRAFT"
+    }
+
+    const post = await prisma.post.update({
+      where: { id },
+      data: {
+        ...(title != null && { title }),
+        ...(slug != null && { slug: slug.trim() }),
+        ...(content != null && { content }),
+        ...(excerpt != null && { excerpt }),
+        ...(coverImage != null && { coverImage }),
+        ...(coverRatio != null && { coverRatio: normalizeCoverRatio(coverRatio) }),
+        ...(status != null && { status: normalizeStatus(status) }),
+        ...(categoryId != null && { categoryId: categoryId || null }),
+        ...(sortOrder != null && { sortOrder: parseInt(String(sortOrder), 10) || 0 }),
+        ...(tagIds != null && {
+          tags: { set: (tagIds as string[]).map((tid: string) => ({ id: tid })) },
+        }),
+      },
+      include: { tags: true },
+    })
+    return NextResponse.json(post)
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "更新失败"
+    return NextResponse.json({ error: "更新失败", detail: message }, { status: 500 })
   }
-
-  const post = await prisma.post.update({
-    where: { id },
-    data: {
-      ...(title != null && { title }),
-      ...(slug != null && { slug: slug.trim() }),
-      ...(content != null && { content }),
-      ...(excerpt != null && { excerpt }),
-      ...(coverImage != null && { coverImage }),
-      ...(coverRatio != null && { coverRatio: normalizeCoverRatio(coverRatio) }),
-      ...(status != null && { status: normalizeStatus(status) }),
-      ...(categoryId != null && { categoryId: categoryId || null }),
-      ...(sortOrder != null && { sortOrder: parseInt(String(sortOrder), 10) || 0 }),
-      ...(tagIds != null && {
-        tags: { set: (tagIds as string[]).map((tid: string) => ({ id: tid })) },
-      }),
-    },
-    include: { tags: true },
-  })
-  return NextResponse.json(post)
 }
 
 export async function DELETE(
@@ -84,7 +95,13 @@ export async function DELETE(
 ) {
   const check = await requireAdmin()
   if (!check.authorized) return check.response
-  const { id } = await params
-  await prisma.post.delete({ where: { id } })
-  return NextResponse.json({ ok: true })
+
+  try {
+    const { id } = await params
+    await prisma.post.delete({ where: { id } })
+    return NextResponse.json({ ok: true })
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "删除失败"
+    return NextResponse.json({ error: "删除失败", detail: message }, { status: 500 })
+  }
 }
