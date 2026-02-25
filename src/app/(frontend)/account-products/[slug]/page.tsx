@@ -6,9 +6,12 @@ import { useParams } from "next/navigation"
 import { toast } from "sonner"
 import { FadeContent, GlowBorder } from "@/components/react-bits"
 import { CoverImage } from "@/components/frontend/CoverImage"
+import { FavoriteButton } from "@/components/frontend/FavoriteButton"
+import { HistoryTracker } from "@/components/frontend/HistoryTracker"
 import { defaultNav } from "@/lib/nav-config"
 import { defaultSiteName } from "@/lib/page-copy"
 import { useNavConfig } from "@/hooks/useNavConfig"
+import { useAuth } from "@/hooks/useAuth"
 
 type AccountProduct = {
     id: string
@@ -33,6 +36,7 @@ type AccountProduct = {
 export default function AccountProductDetailPage() {
     const { slug } = useParams<{ slug: string }>()
     const { nav, siteName } = useNavConfig()
+    const { isLoggedIn, user, isLoading: authLoading } = useAuth()
     const sectionLabel = nav.accountProducts ?? defaultNav.accountProducts ?? "AI 服务"
     const [product, setProduct] = useState<AccountProduct | null>(null)
     const [loading, setLoading] = useState(true)
@@ -41,6 +45,7 @@ export default function AccountProductDetailPage() {
     const [buyerName, setBuyerName] = useState("")
     const [buyerEmail, setBuyerEmail] = useState("")
     const [buyerContact, setBuyerContact] = useState("")
+    const [showLoginPrompt, setShowLoginPrompt] = useState(false)
 
     const loadProduct = useCallback(async () => {
         try {
@@ -56,7 +61,13 @@ export default function AccountProductDetailPage() {
 
     useEffect(() => { loadProduct() }, [loadProduct])
 
-    // L4: 动态设置页面标题
+    useEffect(() => {
+        if (isLoggedIn && user) {
+            setBuyerName(user.nickname || user.name || "")
+            setBuyerEmail(user.email || "")
+        }
+    }, [isLoggedIn, user])
+
     useEffect(() => {
         if (product) {
             document.title = `${product.title} | ${sectionLabel} | ${siteName || defaultSiteName}`
@@ -79,6 +90,7 @@ export default function AccountProductDetailPage() {
             const res = await fetch("/api/account-orders", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify({
                     accountProductId: product.id,
                     buyerName: buyerName.trim(),
@@ -90,7 +102,7 @@ export default function AccountProductDetailPage() {
                 const data = await res.json()
                 toast.success(`下单成功！订单号: ${data.orderNo}`)
                 setShowBuyForm(false)
-                loadProduct() // reload to refresh stock
+                loadProduct()
             } else {
                 const err = await res.json()
                 toast.error(err.error || "下单失败")
@@ -98,6 +110,14 @@ export default function AccountProductDetailPage() {
         } finally {
             setBuying(false)
         }
+    }
+
+    function handleBuyClick() {
+        if (!isLoggedIn) {
+            setShowLoginPrompt(true)
+            return
+        }
+        setShowBuyForm(true)
     }
 
     if (loading) {
@@ -132,7 +152,13 @@ export default function AccountProductDetailPage() {
 
     return (
         <div className="min-h-screen px-6 md:px-12 lg:px-16 py-12 pb-28 lg:pb-16">
-            {/* 面包屑 */}
+            <HistoryTracker
+                itemType="ACCOUNT_PRODUCT"
+                itemId={product.id}
+                title={product.title}
+                coverImage={product.coverImage || undefined}
+            />
+
             <FadeContent>
                 <nav className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground mb-10">
                     <Link href="/" className="hover:text-foreground transition-colors flex items-center gap-1">
@@ -146,17 +172,14 @@ export default function AccountProductDetailPage() {
             </FadeContent>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl">
-                {/* 左侧：商品信息 */}
                 <div className="lg:col-span-2 space-y-8">
                     <FadeContent delay={0.1}>
-                        {/* 封面图 */}
                         {product.coverImage && (
                             <div className="rounded-xl overflow-hidden border border-border/50 bg-muted">
                                 <CoverImage src={product.coverImage} alt={product.title} fallbackIcon="ri-robot-line" />
                             </div>
                         )}
 
-                        {/* 标题与类型 */}
                         <div className="space-y-3">
                             <div className="flex items-center gap-2">
                                 <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium uppercase">
@@ -168,16 +191,23 @@ export default function AccountProductDetailPage() {
                                     </span>
                                 )}
                             </div>
-                            <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground tracking-tight">
-                                {product.title}
-                            </h1>
+                            <div className="flex items-center gap-3">
+                                <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground tracking-tight">
+                                    {product.title}
+                                </h1>
+                                <FavoriteButton
+                                    itemType="ACCOUNT_PRODUCT"
+                                    itemId={product.id}
+                                    title={product.title}
+                                    coverImage={product.coverImage || undefined}
+                                />
+                            </div>
                             {product.description && (
                                 <p className="text-muted-foreground text-lg">{product.description}</p>
                             )}
                         </div>
                     </FadeContent>
 
-                    {/* 权益列表 */}
                     {product.features && product.features.length > 0 && (
                         <FadeContent delay={0.2}>
                             <GlowBorder className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-6">
@@ -196,7 +226,6 @@ export default function AccountProductDetailPage() {
                         </FadeContent>
                     )}
 
-                    {/* 转移流程 */}
                     {product.transferGuide && (
                         <FadeContent delay={0.25}>
                             <div className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-6">
@@ -208,7 +237,6 @@ export default function AccountProductDetailPage() {
                         </FadeContent>
                     )}
 
-                    {/* 安全说明 */}
                     {product.securityNote && (
                         <FadeContent delay={0.3}>
                             <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-6">
@@ -220,7 +248,6 @@ export default function AccountProductDetailPage() {
                         </FadeContent>
                     )}
 
-                    {/* 售后保障 */}
                     {product.warranty && (
                         <FadeContent delay={0.35}>
                             <div className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-6">
@@ -233,12 +260,10 @@ export default function AccountProductDetailPage() {
                     )}
                 </div>
 
-                {/* 右侧：购买栏（sticky） */}
                 <div className="lg:col-span-1">
                     <FadeContent delay={0.15}>
                         <div className="sticky top-8 space-y-4">
                             <GlowBorder className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-6">
-                                {/* 价格 */}
                                 <div className="flex items-baseline gap-2 mb-4">
                                     <span className="text-3xl font-bold text-foreground">¥{Number(product.price).toFixed(2)}</span>
                                     {product.originalPrice != null && product.originalPrice > product.price && (
@@ -246,7 +271,6 @@ export default function AccountProductDetailPage() {
                                     )}
                                 </div>
 
-                                {/* 信息行 */}
                                 <div className="space-y-2 mb-6 text-sm">
                                     {product.validDays && (
                                         <div className="flex justify-between">
@@ -262,24 +286,31 @@ export default function AccountProductDetailPage() {
                                     </div>
                                 </div>
 
-                                {/* 购买按钮 */}
                                 {product.stock > 0 ? (
                                     showBuyForm ? (
                                         <div className="space-y-3">
-                                            <input
-                                                type="text"
-                                                placeholder="您的姓名 *"
-                                                value={buyerName}
-                                                onChange={(e) => setBuyerName(e.target.value)}
-                                                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
-                                            />
-                                            <input
-                                                type="email"
-                                                placeholder="邮箱地址 *"
-                                                value={buyerEmail}
-                                                onChange={(e) => setBuyerEmail(e.target.value)}
-                                                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
-                                            />
+                                            <div>
+                                                <label className="text-xs text-muted-foreground">姓名</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="您的姓名 *"
+                                                    value={buyerName}
+                                                    onChange={(e) => setBuyerName(e.target.value)}
+                                                    disabled={isLoggedIn}
+                                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-muted-foreground">邮箱</label>
+                                                <input
+                                                    type="email"
+                                                    placeholder="邮箱地址 *"
+                                                    value={buyerEmail}
+                                                    onChange={(e) => setBuyerEmail(e.target.value)}
+                                                    disabled={isLoggedIn}
+                                                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                                                />
+                                            </div>
                                             <input
                                                 type="text"
                                                 placeholder="其他联系方式（微信/手机）"
@@ -287,6 +318,12 @@ export default function AccountProductDetailPage() {
                                                 onChange={(e) => setBuyerContact(e.target.value)}
                                                 className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
                                             />
+                                            {isLoggedIn && (
+                                                <p className="text-xs text-muted-foreground">
+                                                    <i className="ri-information-line mr-1" />
+                                                    已登录用户信息自动填充
+                                                </p>
+                                            )}
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => setShowBuyForm(false)}
@@ -303,9 +340,24 @@ export default function AccountProductDetailPage() {
                                                 </button>
                                             </div>
                                         </div>
+                                    ) : showLoginPrompt ? (
+                                        <div className="space-y-3 text-center">
+                                            <p className="text-sm text-muted-foreground">
+                                                请先登录后再购买
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                登录后可追踪订单状态、同步购买记录
+                                            </p>
+                                            <button
+                                                onClick={() => setShowLoginPrompt(false)}
+                                                className="w-full py-2 rounded-lg border border-border text-sm text-muted-foreground hover:bg-muted transition-colors"
+                                            >
+                                                返回
+                                            </button>
+                                        </div>
                                     ) : (
                                         <button
-                                            onClick={() => setShowBuyForm(true)}
+                                            onClick={handleBuyClick}
                                             className="w-full py-3 rounded-lg bg-foreground text-background font-medium hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2"
                                         >
                                             <i className="ri-shopping-bag-line" /> 立即购买
@@ -321,7 +373,6 @@ export default function AccountProductDetailPage() {
                                 )}
                             </GlowBorder>
 
-                            {/* 标签 */}
                             {product.tags && product.tags.length > 0 && (
                                 <div className="flex flex-wrap gap-1.5">
                                     {product.tags.map((tag) => (

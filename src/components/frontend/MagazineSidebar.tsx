@@ -11,7 +11,7 @@ import { useNavConfig } from "@/hooks/useNavConfig"
 import { defaultNav } from "@/lib/nav-config"
 import { getBeijingVolShort } from "@/lib/date-util"
 
-const emptySubscribe = () => () => { }
+const emptySubscribe = () => () => {}
 const getSnapshot = () => true
 const getServerSnapshot = () => false
 
@@ -24,7 +24,12 @@ const navKeys = [
   { key: "about" as const, href: "/about", icon: "ri-user-line" },
 ]
 
-export function MagazineSidebar({ width = 200 }: { width?: number }) {
+interface MagazineSidebarProps {
+  width?: number
+  onOpenProfile?: () => void
+}
+
+export function MagazineSidebar({ width = 200, onOpenProfile }: MagazineSidebarProps) {
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
   const { nav } = useNavConfig()
@@ -94,6 +99,15 @@ export function MagazineSidebar({ width = 200 }: { width?: number }) {
       </div>
 
       <div className="space-y-4">
+        {onOpenProfile && (
+          <button
+            onClick={onOpenProfile}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-200 w-full"
+          >
+            <i className="ri-user-smile-line text-base" />
+            <span className="font-medium tracking-wide">我的</span>
+          </button>
+        )}
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-200 w-full"

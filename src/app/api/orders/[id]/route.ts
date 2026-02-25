@@ -36,12 +36,12 @@ export async function GET(
   }
 }
 
-/** PUT: 管理员更新订单状态。body: { status }。PENDING→PAID|CANCELLED；PAID→REFUNDED；CANCELLED/REFUNDED 为终态。 */
+/** PUT: 管理员更新订单状态。body: { status, executed }。PENDING→PAID|CANCELLED；PAID→REFUNDED；CANCELLED/REFUNDED 为终态。 */
 const VALID_TRANSITIONS: Record<string, string[]> = {
   PENDING:   ["PAID", "CANCELLED"],
   PAID:      ["REFUNDED"],
   CANCELLED: [],
-  REFUNDING: ["PAID", "REFUNDED"], // 退款中可回滚到已支付或完成退款
+  REFUNDING: ["PAID", "REFUNDED"],
   REFUNDED:  [],
 }
 
@@ -55,19 +55,32 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { status } = body
-
-    const validStatuses = ["PENDING", "PAID", "CANCELLED", "REFUNDING", "REFUNDED"]
-    if (!status || !validStatuses.includes(status)) {
-      return NextResponse.json({ error: "无效的状态" }, { status: 400 })
-    }
+    const { status, executed } = body
 
     const existing = await prisma.order.findUnique({ where: { id } })
     if (!existing) {
       return NextResponse.json({ error: "订单不存在" }, { status: 404 })
     }
 
-    // 状态转换验证
+    if (typeof executed === "boolean") {
+      const order = await prisma.order.update({
+        where: { id },
+        data: {
+          executed,
+          executedAt: executed ? new Date() : null,
+        },
+      })
+      return NextResponse.json({
+        ...order,
+        amount: Number(order.amount),
+      })
+    }
+
+    const validStatuses = ["PENDING", "PAID", "CANCELLED", "REFUNDING", "REFUNDED"]
+    if (!status || !validStatuses.includes(status)) {
+      return NextResponse.json({ error: "无效的状态" }, { status: 400 })
+    }
+
     const allowed = VALID_TRANSITIONS[existing.status] || []
     if (!allowed.includes(status)) {
       return NextResponse.json(

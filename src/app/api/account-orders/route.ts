@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { randomBytes } from "crypto"
 import { requireAdmin } from "@/lib/require-admin"
+import { auth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { sendOrderEmail } from "@/lib/email"
 import { normalizeSiteName } from "@/lib/page-copy"
@@ -44,6 +45,9 @@ function generateOrderNo(): string {
 /** POST: 创建账号商品订单 */
 export async function POST(request: NextRequest) {
     try {
+        const session = await auth()
+        const userId = session?.user?.id || null
+
         const body = await request.json()
         const { accountProductId, buyerEmail, buyerName, buyerContact } = body
 
@@ -90,6 +94,7 @@ export async function POST(request: NextRequest) {
                     buyerEmail: normalizedEmail,
                     buyerName: buyerName?.trim() || null,
                     ...(buyerContact ? { deliveryInfo: { buyerContact: buyerContact.trim() } } : {}),
+                    ...(userId ? { userId } : {}),
                 },
             })
         })

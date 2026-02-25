@@ -1,9 +1,11 @@
 "use client"
 /** 前台布局客户端：侧栏宽度、主题、设置 Provider、底部导航、滚动进度。 */
 import { useState, useCallback, useEffect, useRef } from "react"
+import { SessionProvider } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import { BottomNav } from "@/components/frontend/bottom-nav"
 import { MagazineSidebar } from "@/components/frontend/MagazineSidebar"
+import { MyProfilePanel } from "@/components/frontend/MyProfilePanel"
 import { ScrollProgress } from "@/components/ui/ScrollProgress"
 import { CustomCursor } from "@/components/ui/CustomCursor"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -35,6 +37,7 @@ export default function FrontendLayoutClient({
 }) {
   const [sidebarWidth, setSidebarWidth] = useState(getStoredWidth)
   const [isDragging, setIsDragging] = useState(false)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
   const dragRef = useRef(false)
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -69,51 +72,57 @@ export default function FrontendLayoutClient({
     }
   }, [isDragging, sidebarWidth])
 
+  const openProfile = useCallback(() => setIsProfileOpen(true), [])
+  const closeProfile = useCallback(() => setIsProfileOpen(false), [])
+
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="dark"
-      storageKey="frontend-theme"
-      enableSystem
-      disableTransitionOnChange
-    >
-      <ThemeColorProvider initial={initial.theme}>
-      <FrontendSettingsProvider initial={initial}>
-        <div className="relative min-h-screen bg-background transition-colors duration-300">
-          <ScrollProgress />
-          <CustomCursor />
-          <div className="fixed inset-0 pointer-events-none z-0">
-            <div className="absolute inset-0 grid-bg opacity-20 z-0" />
-          </div>
-          <MagazineSidebar width={sidebarWidth} />
-          {/* Drag handle — desktop only */}
-          <div
-            className={cn(
-              "hidden lg:block fixed top-0 bottom-0 z-50 w-1 cursor-col-resize transition-colors",
-              isDragging ? "bg-primary/30" : "hover:bg-primary/20"
-            )}
-            style={{ left: sidebarWidth - 2 }}
-            onMouseDown={handleMouseDown}
-          />
-          <main
-            className="relative z-10"
-            style={{
-              marginLeft: undefined,
-              transition: isDragging ? "none" : "margin-left 200ms",
-            }}
-          >
-            {/* lg breakpoint: use sidebar width as margin */}
-            <style>{`@media (min-width: 1024px) { .frontend-main-with-sidebar { margin-left: ${sidebarWidth}px; } }`}</style>
-            <div className="frontend-main-with-sidebar min-w-0 overflow-x-hidden">
-              {children}
+    <SessionProvider>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="dark"
+        storageKey="frontend-theme"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <ThemeColorProvider initial={initial.theme}>
+        <FrontendSettingsProvider initial={initial}>
+          <div className="relative min-h-screen bg-background transition-colors duration-300">
+            <ScrollProgress />
+            <CustomCursor />
+            <div className="fixed inset-0 pointer-events-none z-0">
+              <div className="absolute inset-0 grid-bg opacity-20 z-0" />
             </div>
-          </main>
-          <div className="lg:hidden">
-            <BottomNav />
+            <MagazineSidebar width={sidebarWidth} onOpenProfile={openProfile} />
+            {/* Drag handle — desktop only */}
+            <div
+              className={cn(
+                "hidden lg:block fixed top-0 bottom-0 z-50 w-1 cursor-col-resize transition-colors",
+                isDragging ? "bg-primary/30" : "hover:bg-primary/20"
+              )}
+              style={{ left: sidebarWidth - 2 }}
+              onMouseDown={handleMouseDown}
+            />
+            <main
+              className="relative z-10"
+              style={{
+                marginLeft: undefined,
+                transition: isDragging ? "none" : "margin-left 200ms",
+              }}
+            >
+              {/* lg breakpoint: use sidebar width as margin */}
+              <style>{`@media (min-width: 1024px) { .frontend-main-with-sidebar { margin-left: ${sidebarWidth}px; } }`}</style>
+              <div className="frontend-main-with-sidebar min-w-0 overflow-x-hidden">
+                {children}
+              </div>
+            </main>
+            <div className="lg:hidden">
+              <BottomNav onOpenProfile={openProfile} />
+            </div>
+            <MyProfilePanel isOpen={isProfileOpen} onClose={closeProfile} />
           </div>
-        </div>
-      </FrontendSettingsProvider>
-      </ThemeColorProvider>
-    </ThemeProvider>
+        </FrontendSettingsProvider>
+        </ThemeColorProvider>
+      </ThemeProvider>
+    </SessionProvider>
   )
 }

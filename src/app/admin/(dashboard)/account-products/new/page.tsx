@@ -9,7 +9,7 @@ export default function NewAccountProductPage() {
 
     useEffect(() => {
         async function createDraft() {
-            const ts = Date.now().toString(36)
+            const ts = Date.now().toString(36).toLowerCase()
             const res = await fetch("/api/account-products", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

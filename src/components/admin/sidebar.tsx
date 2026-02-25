@@ -36,6 +36,7 @@ const navGroups = [
     label: "系统",
     items: [
       { name: "订单管理", href: "/admin/orders", icon: "ri-shopping-cart-line" },
+      { name: "用户管理", href: "/admin/users", icon: "ri-user-line" },
       { name: "分类标签", href: "/admin/categories", icon: "ri-price-tag-3-line" },
       { name: "网站设置", href: "/admin/settings", icon: "ri-settings-3-line" },
     ],

@@ -16,7 +16,11 @@ const navItems = [
   { key: "about" as const, href: "/about", icon: "ri-user-line", activeIcon: "ri-user-fill" },
 ]
 
-export function BottomNav() {
+interface BottomNavProps {
+  onOpenProfile?: () => void
+}
+
+export function BottomNav({ onOpenProfile }: BottomNavProps) {
   const pathname = usePathname()
   const { nav } = useNavConfig()
   const { theme, setTheme } = useTheme()
@@ -55,6 +59,14 @@ export function BottomNav() {
           <i className="ri-sun-line dark:hidden text-xl" />
           <i className="ri-moon-line hidden dark:inline text-xl" />
         </button>
+        {onOpenProfile && (
+          <button
+            onClick={onOpenProfile}
+            className="flex items-center justify-center p-3 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all duration-200 active:scale-95"
+          >
+            <i className="ri-user-smile-line text-xl" />
+          </button>
+        )}
       </div>
     </nav>
   )

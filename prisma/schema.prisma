@@ -14,20 +14,46 @@ datasource db {
 enum Role {
   ADMIN   // 管理员：完整读写权限
   VIEWER  // 体验账户：仅可浏览后台，无法修改
+  USER    // 前台注册用户
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  role      Role     @default(ADMIN)
-  name      String?  @db.VarChar(100)
-  avatar    String?  @db.Text
-  bio       String?  @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  posts     Post[]
-  works     Work[]
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String
+  role          Role     @default(USER)
+  name          String?  @db.VarChar(100)
+  avatar        String?  @db.Text
+  bio           String?  @db.Text
+  nickname      String?  @db.VarChar(50)
+  memberLevel   Int      @default(0)
+  favorites     Json?
+  preferences   Json?
+  disabled      Boolean  @default(false)
+  lastLoginAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  posts         Post[]
+  works         Work[]
+  orders        Order[]
+  accountOrders AccountOrder[]
+  history       BrowsingHistory[]
+}
+
+// ==================== 浏览历史模型 ====================
+model BrowsingHistory {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemType   String   @db.VarChar(20)
+  itemId     String   @db.VarChar(64)
+  title      String   @db.VarChar(255)
+  coverImage String?  @db.Text
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, itemType, itemId])
+  @@index([userId])
+  @@index([userId, createdAt])
 }
 
 // ==================== 文章模型 ====================
@@ -35,7 +61,7 @@ model Post {
   id          String     @id @default(cuid())
   title       String     @db.VarChar(255)
   slug        String     @unique @db.VarChar(255)
-  content     Json       // Plate 编辑器 JSON 内容
+  content     Json
   excerpt     String?    @db.Text
   coverImage  String?    @db.Text
   coverRatio  String     @default("3:4") @db.VarChar(10)
@@ -57,29 +83,29 @@ model Post {
 
 // ==================== 作品模型 ====================
 enum WorkType {
-  DESIGN      // 设计作品
-  DEVELOPMENT // 开发作品
+  DESIGN
+  DEVELOPMENT
 }
 
 model Work {
   id             String        @id @default(cuid())
   title          String        @db.VarChar(255)
   slug           String        @unique @db.VarChar(255)
-  workType       WorkType      @default(DESIGN) // 设计作品 / 开发作品
+  workType       WorkType      @default(DESIGN)
   description    String?       @db.Text
-  content        Json?         // 详细描述（Plate JSON）
+  content        Json?
   coverImage     String        @db.Text
   coverRatio     String        @default("3:4") @db.VarChar(10)
-  images         Json          // 详情图数组，存储为 JSON
-  currentVersion String?       @db.VarChar(20)  // 当前最新版本号
+  images         Json
+  currentVersion String?       @db.VarChar(20)
   price          Decimal?      @db.Decimal(10, 2)
   isFree         Boolean       @default(false)
-  figmaUrl       String?       @db.Text // Figma 文件链接（前台嵌入预览 + 购买后跳转）
-  deliveryUrl    String?       @db.Text // 自定义交付链接（GitHub / 网盘等，购买后可复制）
+  figmaUrl       String?       @db.Text
+  deliveryUrl    String?       @db.Text
   fileUrl        String?       @db.Text
   fileName       String?       @db.VarChar(255)
-  demoUrl        String?       @db.Text // 在线体验链接（开发作品）
-  demoQrCode     String?       @db.Text // 扫码体验二维码 data URL（开发作品）
+  demoUrl        String?       @db.Text
+  demoQrCode     String?       @db.Text
   status         WorkStatus    @default(DRAFT)
   categoryId     String?
   category       Category?     @relation(fields: [categoryId], references: [id])
@@ -100,19 +126,19 @@ model Work {
 
 // ==================== 作品版本模型 ====================
 model WorkVersion {
-  id        String   @id @default(cuid())
-  workId    String
-  work      Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
-  version   String   @db.VarChar(20) // "1.0", "2.0" 等
-  price     Decimal  @db.Decimal(10, 2)
-  changelog   String?  @db.Text        // 更新说明
-  figmaUrl    String?  @db.Text        // Figma 文件链接
-  deliveryUrl String?  @db.Text        // 自定义交付链接（GitHub / 网盘等）
+  id          String   @id @default(cuid())
+  workId      String
+  work        Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
+  version     String   @db.VarChar(20)
+  price       Decimal  @db.Decimal(10, 2)
+  changelog   String?  @db.Text
+  figmaUrl    String?  @db.Text
+  deliveryUrl String?  @db.Text
   fileUrl     String?  @db.Text
   fileName    String?  @db.VarChar(255)
-  createdAt DateTime @default(now())
+  createdAt   DateTime @default(now())
 
-  orders    Order[]
+  orders Order[]
 
   @@unique([workId, version])
   @@index([workId])
@@ -126,15 +152,19 @@ model Order {
   work          Work         @relation(fields: [workId], references: [id])
   versionId     String?
   version       WorkVersion? @relation(fields: [versionId], references: [id])
-  upgradeFromId String?      @db.VarChar(64) // 升级来源版本 ID
+  upgradeFromId String?      @db.VarChar(64)
   amount        Decimal      @db.Decimal(10, 2)
   status        OrderStatus  @default(PENDING)
   buyerEmail    String       @db.VarChar(255)
   buyerName     String?      @db.VarChar(100)
-  paymentId     String?      @db.VarChar(64) // 微信支付订单号
+  paymentId     String?      @db.VarChar(64)
   paidAt        DateTime?
   downloadToken String?      @unique @db.VarChar(64)
   downloadCount Int          @default(0)
+  executed      Boolean      @default(false)
+  executedAt    DateTime?
+  userId        String?
+  user          User?        @relation(fields: [userId], references: [id])
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
@@ -142,6 +172,7 @@ model Order {
   @@index([workId])
   @@index([versionId])
   @@index([buyerEmail])
+  @@index([userId])
 }
 
 // ==================== 分类模型 ====================
@@ -167,17 +198,16 @@ model Tag {
 }
 
 // ==================== 媒体文件模型 ====================
-// 归属类型：文章 / 设计作品 / 开发作品 / 视频教程 / AI 服务
 model Media {
   id         String   @id @default(cuid())
   name       String   @db.VarChar(255)
   url        String   @db.Text
-  type       String   @db.VarChar(50) // image, video, file
+  type       String   @db.VarChar(50)
   size       Int
   width      Int?
   height     Int?
-  entityType String   @db.VarChar(50) // POST | WORK_DESIGN | WORK_DEVELOPMENT | TUTORIAL | ACCOUNT_PRODUCT
-  entityId   String   @db.VarChar(64) // Post.id / Work.id / VideoTutorial.id / AccountProduct.id
+  entityType String   @db.VarChar(50)
+  entityId   String   @db.VarChar(64)
   createdAt  DateTime @default(now())
 
   @@index([type])
@@ -187,16 +217,16 @@ model Media {
 
 // ==================== 网站设置模型 ====================
 model Settings {
-  id            String  @id @default("settings")
-  siteName      String  @default("Chou's Studio") @db.VarChar(255)
-  avatar        String? @db.Text
-  socialLinks   Json?   // { wechat, xiaohongshu, officialAccount, bilibili, figma, youshe, x, github }
-  about         Json?   // 关于页内容
-  nav           Json?   // { logoText, works, blog, about, tutorials } 导航品牌与名称
-  pageCopy      Json?   // 各页页头介绍与首页 Hero 文案
-  theme         Json?   // { base: "neutral", accent: "fanmihua" } 主题配置
-  footer        Json?   // { copyrightText: "范米花儿", version: "0.1.0" } 页脚版权与版本
-  updatedAt     DateTime @updatedAt
+  id          String  @id @default("settings")
+  siteName    String  @default("Chou's Studio") @db.VarChar(255)
+  avatar      String? @db.Text
+  socialLinks Json?
+  about       Json?
+  nav         Json?
+  pageCopy    Json?
+  theme       Json?
+  footer      Json?
+  updatedAt   DateTime @updatedAt
 }
 
 // ==================== 视频教程模型 ====================
@@ -205,7 +235,7 @@ model VideoTutorial {
   title       String    @db.VarChar(255)
   slug        String    @unique @db.VarChar(255)
   description String?   @db.Text
-  videoUrl    String    @db.Text   // 视频链接（B 站、YouTube 等）
+  videoUrl    String    @db.Text
   thumbnail   String?   @db.Text
   coverRatio  String    @default("3:4") @db.VarChar(10)
   categoryId  String?
@@ -223,19 +253,19 @@ model AccountProduct {
   id             String               @id @default(cuid())
   title          String               @db.VarChar(255)
   slug           String               @unique @db.VarChar(255)
-  description    String?              @db.Text          // 商品描述（HTML/纯文本）
-  content        Json?                                  // 详情（Plate JSON，含安全说明等）
+  description    String?              @db.Text
+  content        Json?
   coverImage     String?              @db.Text
   coverRatio     String               @default("3:4") @db.VarChar(10)
-  accountType    String               @db.VarChar(50)   // "gemini" | "chatgpt" | "cursor" | "claude" | "gmail" 等
+  accountType    String               @db.VarChar(50)
   price          Decimal              @db.Decimal(10, 2)
-  originalPrice  Decimal?             @db.Decimal(10, 2) // 原价（划线价）
-  stock          Int                  @default(0)       // 库存
-  validDays      Int?                                    // 有效天数（null = 永久）
-  features       Json?                                   // 权益列表 JSON: ["GPT-4 访问", "无限用量"]
-  securityNote   String?              @db.Text           // 账号安全说明
-  transferGuide  String?              @db.Text           // 转移/使用流程说明
-  warranty       String?              @db.Text           // 售后保障说明
+  originalPrice  Decimal?             @db.Decimal(10, 2)
+  stock          Int                  @default(0)
+  validDays      Int?
+  features       Json?
+  securityNote   String?              @db.Text
+  transferGuide  String?              @db.Text
+  warranty       String?              @db.Text
   status         AccountProductStatus @default(DRAFT)
   categoryId     String?
   category       Category?            @relation(fields: [categoryId], references: [id])
@@ -260,15 +290,20 @@ model AccountOrder {
   status           OrderStatus    @default(PENDING)
   buyerEmail       String         @db.VarChar(255)
   buyerName        String?        @db.VarChar(100)
-  deliveryInfo     Json?                                  // 账号交付信息 { account, password, notes }
+  deliveryInfo     Json?
   deliveredAt      DateTime?
   paidAt           DateTime?
+  executed         Boolean        @default(false)
+  executedAt       DateTime?
+  userId           String?
+  user             User?          @relation(fields: [userId], references: [id])
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
   @@index([status])
   @@index([accountProductId])
   @@index([buyerEmail])
+  @@index([userId])
 }
 
 // ==================== 枚举类型 ====================
@@ -288,15 +323,15 @@ enum AccountProductStatus {
   DRAFT
   PUBLISHED
   PRIVATE
-  SOLD_OUT   // 售罄
+  SOLD_OUT
 }
 
 enum OrderStatus {
-  PENDING    // 待支付
-  PAID       // 已支付（数字商品自动交付）
-  CANCELLED  // 已取消
-  REFUNDING  // 退款中
-  REFUNDED   // 已退款
+  PENDING
+  PAID
+  CANCELLED
+  REFUNDING
+  REFUNDED
 }
 
 enum CategoryType {
@@ -305,5 +340,5 @@ enum CategoryType {
   DESIGN
   DEVELOPMENT
   TUTORIAL
-  ACCOUNT    // AI 服务 / 账号商品
+  ACCOUNT
 }

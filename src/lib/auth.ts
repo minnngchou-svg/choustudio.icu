@@ -35,9 +35,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!isPasswordValid) {
           return null
         }
-        if (user.role !== "ADMIN") {
-          console.error("[auth] 非管理员用户尝试登录后台:", user.id, user.role)
-          return null
+        if (user.disabled) {
+          console.error("[auth] 账号已被禁用:", user.id)
+          throw new Error("账号已被禁用")
+        }
+        try {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { lastLoginAt: new Date() },
+          })
+        } catch {
+          // Ignore update error
         }
         return {
           id: user.id,
@@ -45,6 +53,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.name,
           image: user.avatar,
           role: user.role,
+          nickname: user.nickname,
         }
       },
     }),
@@ -62,6 +71,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null
         }
         token.role = userRole
+        token.nickname = (user as { nickname?: string }).nickname
       }
       return token
     },
@@ -69,6 +79,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string
         ;(session.user as { role?: string }).role = token.role as string
+        ;(session.user as { nickname?: string }).nickname = token.nickname as string | undefined
       }
       return session
     },

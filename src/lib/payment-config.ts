@@ -9,9 +9,13 @@ export type PaymentConfig = {
   wechatPrivateKey?: string
   wechatCert?: string
   wechatNotifyUrl?: string
+  alipayAppId?: string
+  alipayPrivateKey?: string
+  alipayPublicKey?: string
+  alipayNotifyUrl?: string
+  alipayReturnUrl?: string
 }
 
-/** 从项目根相对路径读取 PEM 文件内容，失败返回 ""。 */
 async function readPemFromPath(filePath: string): Promise<string> {
   if (!filePath?.trim()) return ""
   try {
@@ -25,7 +29,6 @@ async function readPemFromPath(filePath: string): Promise<string> {
   }
 }
 
-/** 从环境变量及可选证书路径读取支付配置。 */
 export async function getPaymentConfig(): Promise<PaymentConfig> {
   let wechatPrivateKey = process.env.WECHAT_PAY_PRIVATE_KEY || ""
   let wechatCert = process.env.WECHAT_PAY_CERT || ""
@@ -38,6 +41,17 @@ export async function getPaymentConfig(): Promise<PaymentConfig> {
     wechatCert = await readPemFromPath(certPath)
   }
 
+  let alipayPrivateKey = process.env.ALIPAY_PRIVATE_KEY || ""
+  let alipayPublicKey = process.env.ALIPAY_PUBLIC_KEY || ""
+  const alipayPrivateKeyPath = process.env.ALIPAY_PRIVATE_KEY_PATH?.trim()
+  const alipayPublicKeyPath = process.env.ALIPAY_PUBLIC_KEY_PATH?.trim()
+  if (!alipayPrivateKey && alipayPrivateKeyPath) {
+    alipayPrivateKey = await readPemFromPath(alipayPrivateKeyPath)
+  }
+  if (!alipayPublicKey && alipayPublicKeyPath) {
+    alipayPublicKey = await readPemFromPath(alipayPublicKeyPath)
+  }
+
   return {
     wechatAppId: process.env.WECHAT_APP_ID || "",
     wechatMchId: process.env.WECHAT_PAY_MCH_ID || "",
@@ -46,5 +60,10 @@ export async function getPaymentConfig(): Promise<PaymentConfig> {
     wechatPrivateKey,
     wechatCert,
     wechatNotifyUrl: process.env.WECHAT_PAY_NOTIFY_URL || "",
+    alipayAppId: process.env.ALIPAY_APP_ID || "",
+    alipayPrivateKey,
+    alipayPublicKey,
+    alipayNotifyUrl: process.env.ALIPAY_NOTIFY_URL || "",
+    alipayReturnUrl: process.env.ALIPAY_RETURN_URL || "",
   }
 }
