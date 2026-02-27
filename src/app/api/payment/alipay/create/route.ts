@@ -6,6 +6,9 @@ import prisma from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
 
+const VALID_ORDER_TYPES = ["work", "account"] as const
+type OrderType = (typeof VALID_ORDER_TYPES)[number]
+
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
@@ -18,6 +21,10 @@ export async function POST(request: NextRequest) {
 
     if (!orderId || !orderType) {
       return NextResponse.json({ error: "参数不完整" }, { status: 400 })
+    }
+
+    if (!VALID_ORDER_TYPES.includes(orderType as OrderType)) {
+      return NextResponse.json({ error: "无效的订单类型" }, { status: 400 })
     }
 
     const config = await getPaymentConfig()
@@ -35,41 +42,57 @@ export async function POST(request: NextRequest) {
     if (orderType === "work") {
       const order = await prisma.order.findUnique({
         where: { id: orderId },
-        select: { id: true, orderNo: true, amount: true, status: true, workId: true },
+        select: {
+          id: true,
+          orderNo: true,
+          amount: true,
+          status: true,
+          workId: true,
+        },
       })
-      if (order) {
-        orderNo = order.orderNo
-        amount = Number(order.amount)
-        status = order.status
-        if (order.workId) {
-          const work = await prisma.work.findUnique({
-            where: { id: order.workId },
-            select: { title: true },
-          })
-          productTitle = work?.title || "作品"
-        }
+
+      if (!order) {
+        return NextResponse.json({ error: "订单不存在" }, { status: 404 })
+      }
+
+      orderNo = order.orderNo
+      amount = Number(order.amount)
+      status = order.status
+
+      if (order.workId) {
+        const work = await prisma.work.findUnique({
+          where: { id: order.workId },
+          select: { title: true },
+        })
+        productTitle = work?.title || "作品"
       }
     } else if (orderType === "account") {
       const order = await prisma.accountOrder.findUnique({
         where: { id: orderId },
-        select: { id: true, orderNo: true, amount: true, status: true, accountProductId: true },
+        select: {
+          id: true,
+          orderNo: true,
+          amount: true,
+          status: true,
+          accountProductId: true,
+        },
       })
-      if (order) {
-        orderNo = order.orderNo
-        amount = Number(order.amount)
-        status = order.status
-        if (order.accountProductId) {
-          const product = await prisma.accountProduct.findUnique({
-            where: { id: order.accountProductId },
-            select: { title: true },
-          })
-          productTitle = product?.title || "AI服务"
-        }
-      }
-    }
 
-    if (!orderNo) {
-      return NextResponse.json({ error: "订单不存在" }, { status: 404 })
+      if (!order) {
+        return NextResponse.json({ error: "订单不存在" }, { status: 404 })
+      }
+
+      orderNo = order.orderNo
+      amount = Number(order.amount)
+      status = order.status
+
+      if (order.accountProductId) {
+        const product = await prisma.accountProduct.findUnique({
+          where: { id: order.accountProductId },
+          select: { title: true },
+        })
+        productTitle = product?.title || "AI服务"
+      }
     }
 
     if (status !== "PENDING") {
@@ -80,11 +103,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "订单金额无效" }, { status: 400 })
     }
 
+    const passbackParams = JSON.stringify({ orderType })
+
     const result = alipay.createPagePay({
       outTradeNo: orderNo,
       totalAmount: amount,
       subject: productTitle,
       body: `${orderType === "work" ? "作品" : "AI服务"}订单 - ${orderNo}`,
+      passbackParams,
     })
 
     if (!result.success) {

@@ -6,32 +6,30 @@ import { createWxPayFromConfig } from "@/lib/wechatpay"
 
 export const dynamic = "force-dynamic"
 
-/** POST: 微信 Native 统一下单。body: { orderNo }，返回 code_url 供前端生成二维码。 */
+const VALID_ORDER_TYPES = ["work", "account"] as const
+type OrderType = (typeof VALID_ORDER_TYPES)[number]
+
+interface RequestBody {
+  orderId?: string
+  orderType?: string
+}
+
 export async function POST(request: NextRequest) {
-  let body: { orderNo?: string }
+  let body: RequestBody
   try {
     body = await request.json()
   } catch {
     return NextResponse.json({ error: "请求体格式错误" }, { status: 400 })
   }
 
-  const orderNo = body.orderNo?.trim()
-  if (!orderNo) {
-    return NextResponse.json({ error: "缺少 orderNo" }, { status: 400 })
+  const { orderId, orderType } = body
+
+  if (!orderId || !orderType) {
+    return NextResponse.json({ error: "参数不完整，需要 orderId 和 orderType" }, { status: 400 })
   }
 
-  const order = await prisma.order.findUnique({
-    where: { orderNo },
-    include: {
-      work: { select: { id: true, title: true, figmaUrl: true, deliveryUrl: true } },
-      version: { select: { version: true, figmaUrl: true, deliveryUrl: true } },
-    },
-  })
-  if (!order) {
-    return NextResponse.json({ error: "订单不存在" }, { status: 404 })
-  }
-  if (order.status !== "PENDING") {
-    return NextResponse.json({ error: "订单状态不是待支付" }, { status: 400 })
+  if (!VALID_ORDER_TYPES.includes(orderType as OrderType)) {
+    return NextResponse.json({ error: "无效的订单类型" }, { status: 400 })
   }
 
   const config = await getPaymentConfig()
@@ -48,15 +46,69 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const amountCents = Math.round(Number(order.amount) * 100)
+  let orderNo = ""
+  let amount = 0
+  let status = ""
+  let description = ""
+
+  if (orderType === "work") {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        work: { select: { id: true, title: true } },
+        version: { select: { version: true } },
+      },
+    })
+
+    if (!order) {
+      return NextResponse.json({ error: "订单不存在" }, { status: 404 })
+    }
+
+    orderNo = order.orderNo
+    amount = Number(order.amount)
+    status = order.status
+
+    if (order.work?.title) {
+      const versionSuffix = order.version ? ` V${order.version.version}` : ""
+      description = `${order.work.title}${versionSuffix}`
+    } else {
+      description = "作品赞助"
+    }
+  } else if (orderType === "account") {
+    const order = await prisma.accountOrder.findUnique({
+      where: { id: orderId },
+      include: {
+        accountProduct: { select: { id: true, title: true } },
+      },
+    })
+
+    if (!order) {
+      return NextResponse.json({ error: "订单不存在" }, { status: 404 })
+    }
+
+    orderNo = order.orderNo
+    amount = Number(order.amount)
+    status = order.status
+
+    if (order.accountProduct?.title) {
+      description = order.accountProduct.title
+    } else {
+      description = "AI服务"
+    }
+  }
+
+  if (status !== "PENDING") {
+    return NextResponse.json({ error: "订单状态不是待支付" }, { status: 400 })
+  }
+
+  const amountCents = Math.round(amount * 100)
   if (amountCents <= 0) {
     return NextResponse.json({ error: "订单金额异常" }, { status: 400 })
   }
 
-  const description = order.work?.title
-    ? `${order.work.title}${order.version ? ` V${order.version.version}` : ""}`
-    : "作品赞助"
   const safeDesc = description.slice(0, 127)
+
+  const attach = JSON.stringify({ orderType })
 
   try {
     const result = await pay.transactions_native({
@@ -64,6 +116,7 @@ export async function POST(request: NextRequest) {
       out_trade_no: orderNo,
       notify_url: notifyUrl,
       amount: { total: amountCents, currency: "CNY" },
+      attach,
     })
     const output = result as {
       status?: number

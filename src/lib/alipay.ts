@@ -6,6 +6,7 @@ export interface AlipayOrderParams {
   totalAmount: number
   subject: string
   body?: string
+  passbackParams?: string
 }
 
 export interface AlipayCreateResult {
@@ -21,9 +22,9 @@ function sign(params: Record<string, string>, privateKey: string): string {
     .map((k) => `${k}=${params[k]}`)
     .join("&")
 
-  const sign = crypto.createSign("RSA-SHA256")
-  sign.update(sortedParams)
-  return sign.sign(privateKey, "base64")
+  const signObj = crypto.createSign("RSA-SHA256")
+  signObj.update(sortedParams)
+  return signObj.sign(privateKey, "base64")
 }
 
 function verifySign(params: Record<string, string>, publicKey: string, signStr: string): boolean {
@@ -51,14 +52,23 @@ export function createAlipayClient(config: PaymentConfig) {
     : "https://openapi.alipaydev.com/gateway.do"
 
   return {
+    appId: alipayAppId,
+
     createPagePay(params: AlipayOrderParams): AlipayCreateResult {
       try {
-        const bizContent = {
+        const bizContent: Record<string, unknown> = {
           out_trade_no: params.outTradeNo,
           total_amount: params.totalAmount.toFixed(2),
           subject: params.subject,
           product_code: "FAST_INSTANT_TRADE_PAY",
-          ...(params.body && { body: params.body }),
+        }
+
+        if (params.body) {
+          bizContent.body = params.body
+        }
+
+        if (params.passbackParams) {
+          bizContent.passback_params = params.passbackParams
         }
 
         const requestParams: Record<string, string> = {
