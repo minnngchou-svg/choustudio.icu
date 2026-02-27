@@ -13,7 +13,6 @@ const navItems = [
   { key: "worksDev" as const, href: "/works/development", icon: "ri-code-s-slash-line", activeIcon: "ri-code-s-slash-fill" },
   { key: "tutorials" as const, href: "/tutorials", icon: "ri-video-line", activeIcon: "ri-video-fill" },
   { key: "accountProducts" as const, href: "/account-products", icon: "ri-robot-line", activeIcon: "ri-robot-fill" },
-  { key: "about" as const, href: "/about", icon: "ri-user-line", activeIcon: "ri-user-fill" },
 ]
 
 interface BottomNavProps {

@@ -21,7 +21,6 @@ const navKeys = [
   { key: "worksDev" as const, href: "/works/development", icon: "ri-code-s-slash-line" },
   { key: "tutorials" as const, href: "/tutorials", icon: "ri-video-line" },
   { key: "accountProducts" as const, href: "/account-products", icon: "ri-robot-line" },
-  { key: "about" as const, href: "/about", icon: "ri-user-line" },
 ]
 
 interface MagazineSidebarProps {
