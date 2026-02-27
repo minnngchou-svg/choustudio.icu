@@ -101,9 +101,13 @@ export default function AccountProductDetailPage() {
             })
             if (res.ok) {
                 const data = await res.json()
-                toast.success(`下单成功！订单号: ${data.orderNo}`)
-                setShowBuyForm(false)
-                loadProduct()
+                if (data.amount > 0) {
+                    window.location.href = `/payment?orderId=${data.id}&type=account`
+                } else {
+                    toast.success(`下单成功！订单号: ${data.orderNo}`)
+                    setShowBuyForm(false)
+                    loadProduct()
+                }
             } else {
                 const err = await res.json()
                 toast.error(err.error || "下单失败")

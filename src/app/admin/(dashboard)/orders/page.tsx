@@ -37,6 +37,8 @@ type OrderItem = {
   createdAt: string
   executed?: boolean
   executedAt?: string | null
+  orderType: "work" | "account"
+  accountType?: string
 }
 
 type GroupedOrders = {
@@ -63,6 +65,7 @@ export default function OrdersPage() {
     orderId: string
     orderNo: string
     action: "CANCELLED" | "REFUNDED" | "DELETE"
+    orderType: "work" | "account"
   } | null>(null)
   const [groupByUser, setGroupByUser] = useState(true)
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
@@ -142,15 +145,47 @@ export default function OrdersPage() {
   function fetchOrders() {
     setLoading(true)
     setForbiddenMessage(null)
-    fetch("/api/orders?all=1", { credentials: "include" })
-      .then(async (r) => {
-        const data = await r.json()
-        if (r.status === 403) {
-          setForbiddenMessage(typeof data?.error === "string" ? data.error : "无权限查看订单")
-          setOrders([])
-        } else {
-          setOrders(Array.isArray(data) ? data : [])
-        }
+    Promise.all([
+      fetch("/api/orders?all=1", { credentials: "include" }).then((r) => r.json()),
+      fetch("/api/account-orders", { credentials: "include" }).then((r) => r.json()),
+    ])
+      .then(([workOrders, accountOrders]) => {
+        const workItems: OrderItem[] = (Array.isArray(workOrders) ? workOrders : []).map((o: OrderItem) => ({
+          ...o,
+          orderType: "work" as const,
+        }))
+        const accountItems: OrderItem[] = (Array.isArray(accountOrders) ? accountOrders : []).map((o: {
+          id: string
+          orderNo: string
+          productTitle: string
+          productId: string
+          buyerEmail: string
+          buyerName: string | null
+          amount: number
+          status: string
+          paidAt: string | null
+          createdAt: string
+          accountType?: string
+        }) => ({
+          id: o.id,
+          orderNo: o.orderNo,
+          workTitle: o.productTitle,
+          workId: o.productId,
+          buyerEmail: o.buyerEmail,
+          buyerName: o.buyerName,
+          amount: o.amount,
+          status: o.status,
+          paidAt: o.paidAt,
+          createdAt: o.createdAt,
+          executed: false,
+          executedAt: null,
+          orderType: "account" as const,
+          accountType: o.accountType,
+        }))
+        const allOrders = [...workItems, ...accountItems].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        setOrders(allOrders)
       })
       .catch(() => setOrders([]))
       .finally(() => setLoading(false))
@@ -158,10 +193,11 @@ export default function OrdersPage() {
 
   useEffect(() => { fetchOrders() }, [])
 
-  async function updateStatus(orderId: string, newStatus: string) {
+  async function updateStatus(orderId: string, newStatus: string, orderType: "work" | "account") {
     setActionLoading(orderId)
     try {
-      const res = await fetch(`/api/orders/${orderId}`, {
+      const endpoint = orderType === "work" ? `/api/orders/${orderId}` : `/api/account-orders/${orderId}`
+      const res = await fetch(endpoint, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -199,10 +235,11 @@ export default function OrdersPage() {
     } catch { }
   }
 
-  async function deleteOrder(orderId: string) {
+  async function deleteOrder(orderId: string, orderType: "work" | "account") {
     setActionLoading(orderId)
     try {
-      const res = await fetch(`/api/orders/${orderId}`, { method: "DELETE", credentials: "include" })
+      const endpoint = orderType === "work" ? `/api/orders/${orderId}` : `/api/account-orders/${orderId}`
+      const res = await fetch(endpoint, { method: "DELETE", credentials: "include" })
       if (res.ok) fetchOrders()
     } finally { setActionLoading(null) }
   }
@@ -336,6 +373,7 @@ export default function OrdersPage() {
                         <TableRow>
                           <TableHead className="w-[40px]">执行</TableHead>
                           <TableHead>订单号</TableHead>
+                          <TableHead>类型</TableHead>
                           <TableHead>商品</TableHead>
                           <TableHead>金额</TableHead>
                           <TableHead>状态</TableHead>
@@ -349,11 +387,16 @@ export default function OrdersPage() {
                             <TableCell className="w-[40px]">
                               <Checkbox
                                 checked={order.executed || false}
-                                disabled={executingOrders.has(order.id) || order.status !== "PAID"}
+                                disabled={executingOrders.has(order.id) || order.status !== "PAID" || order.orderType === "account"}
                                 onCheckedChange={() => toggleExecuted(order.id, order.executed || false)}
                               />
                             </TableCell>
                             <TableCell className="font-mono text-xs">{order.orderNo}</TableCell>
+                            <TableCell>
+                              <Badge variant={order.orderType === "work" ? "default" : "secondary"}>
+                                {order.orderType === "work" ? "作品" : "AI服务"}
+                              </Badge>
+                            </TableCell>
                             <TableCell className="max-w-[150px] truncate">{order.workTitle}</TableCell>
                             <TableCell>{order.amount > 0 ? `¥${order.amount}` : "开源"}</TableCell>
                             <TableCell>
@@ -374,23 +417,23 @@ export default function OrdersPage() {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                   {order.status === "PENDING" && (
-                                    <DropdownMenuItem onClick={() => updateStatus(order.id, "PAID")}>
+                                    <DropdownMenuItem onClick={() => updateStatus(order.id, "PAID", order.orderType)}>
                                       <i className="ri-checkbox-circle-line mr-2" />标记已支付
                                     </DropdownMenuItem>
                                   )}
                                   {order.status === "PENDING" && <DropdownMenuSeparator />}
                                   {order.status === "PENDING" && (
-                                    <DropdownMenuItem className="text-destructive" onClick={() => setConfirmAction({ orderId: order.id, orderNo: order.orderNo, action: "CANCELLED" })}>
+                                    <DropdownMenuItem className="text-destructive" onClick={() => setConfirmAction({ orderId: order.id, orderNo: order.orderNo, action: "CANCELLED", orderType: order.orderType })}>
                                       <i className="ri-close-circle-line mr-2" />取消订单
                                     </DropdownMenuItem>
                                   )}
                                   {order.status === "PAID" && (
-                                    <DropdownMenuItem className="text-destructive" onClick={() => setConfirmAction({ orderId: order.id, orderNo: order.orderNo, action: "REFUNDED" })}>
+                                    <DropdownMenuItem className="text-destructive" onClick={() => setConfirmAction({ orderId: order.id, orderNo: order.orderNo, action: "REFUNDED", orderType: order.orderType })}>
                                       <i className="ri-refund-2-line mr-2" />退款
                                     </DropdownMenuItem>
                                   )}
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-destructive" onClick={() => setConfirmAction({ orderId: order.id, orderNo: order.orderNo, action: "DELETE" })}>
+                                  <DropdownMenuItem className="text-destructive" onClick={() => setConfirmAction({ orderId: order.id, orderNo: order.orderNo, action: "DELETE", orderType: order.orderType })}>
                                     <i className="ri-delete-bin-line mr-2" />删除订单
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -413,6 +456,7 @@ export default function OrdersPage() {
                   <Checkbox checked={tc.isAllSelected} onCheckedChange={() => tc.toggleSelectAll()} />
                 </TableHead>
                 <SortableTableHead column="orderNo" currentSort={tc.sortColumn as string} currentDirection={tc.sortDirection} onToggle={(c) => tc.toggleSort(c as keyof OrderItem)}>订单号</SortableTableHead>
+                <TableHead>类型</TableHead>
                 <TableHead>商品</TableHead>
                 <TableHead>买家</TableHead>
                 <SortableTableHead column="amount" currentSort={tc.sortColumn as string} currentDirection={tc.sortDirection} onToggle={(c) => tc.toggleSort(c as keyof OrderItem)}>金额</SortableTableHead>
@@ -423,7 +467,7 @@ export default function OrdersPage() {
             </TableHeader>
             <TableBody>
               {tc.pagedData.length === 0 ? (
-                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">暂无订单</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">暂无订单</TableCell></TableRow>
               ) : (
                 tc.pagedData.map((order) => (
                   <TableRow key={order.id}>
@@ -431,6 +475,11 @@ export default function OrdersPage() {
                       <Checkbox checked={tc.selectedIds.has(order.id)} onCheckedChange={() => tc.toggleSelect(order.id)} />
                     </TableCell>
                     <TableCell className="font-mono text-xs">{order.orderNo}</TableCell>
+                    <TableCell>
+                      <Badge variant={order.orderType === "work" ? "default" : "secondary"}>
+                        {order.orderType === "work" ? "作品" : "AI服务"}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="max-w-[150px] truncate">{order.workTitle}</TableCell>
                     <TableCell>
                       <div className="text-sm">{order.buyerEmail}</div>
@@ -455,23 +504,23 @@ export default function OrdersPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           {order.status === "PENDING" && (
-                            <DropdownMenuItem onClick={() => updateStatus(order.id, "PAID")}>
+                            <DropdownMenuItem onClick={() => updateStatus(order.id, "PAID", order.orderType)}>
                               <i className="ri-checkbox-circle-line mr-2" />标记已支付
                             </DropdownMenuItem>
                           )}
                           {order.status === "PENDING" && <DropdownMenuSeparator />}
                           {order.status === "PENDING" && (
-                            <DropdownMenuItem className="text-destructive" onClick={() => setConfirmAction({ orderId: order.id, orderNo: order.orderNo, action: "CANCELLED" })}>
+                            <DropdownMenuItem className="text-destructive" onClick={() => setConfirmAction({ orderId: order.id, orderNo: order.orderNo, action: "CANCELLED", orderType: order.orderType })}>
                               <i className="ri-close-circle-line mr-2" />取消订单
                             </DropdownMenuItem>
                           )}
                           {order.status === "PAID" && (
-                            <DropdownMenuItem className="text-destructive" onClick={() => setConfirmAction({ orderId: order.id, orderNo: order.orderNo, action: "REFUNDED" })}>
+                            <DropdownMenuItem className="text-destructive" onClick={() => setConfirmAction({ orderId: order.id, orderNo: order.orderNo, action: "REFUNDED", orderType: order.orderType })}>
                               <i className="ri-refund-2-line mr-2" />退款
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => setConfirmAction({ orderId: order.id, orderNo: order.orderNo, action: "DELETE" })}>
+                          <DropdownMenuItem className="text-destructive" onClick={() => setConfirmAction({ orderId: order.id, orderNo: order.orderNo, action: "DELETE", orderType: order.orderType })}>
                             <i className="ri-delete-bin-line mr-2" />删除订单
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -514,9 +563,9 @@ export default function OrdersPage() {
                 disabled={actionLoading === confirmAction.orderId}
                 onClick={async () => {
                   if (confirmAction.action === "DELETE") {
-                    await deleteOrder(confirmAction.orderId)
+                    await deleteOrder(confirmAction.orderId, confirmAction.orderType)
                   } else {
-                    await updateStatus(confirmAction.orderId, confirmAction.action)
+                    await updateStatus(confirmAction.orderId, confirmAction.action, confirmAction.orderType)
                   }
                   setConfirmAction(null)
                 }}

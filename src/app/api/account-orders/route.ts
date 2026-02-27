@@ -137,6 +137,24 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url)
         const statusFilter = searchParams.get("status")
         const search = searchParams.get("search")?.trim()
+        const orderId = searchParams.get("orderId")
+
+        if (orderId) {
+            const order = await prisma.accountOrder.findUnique({
+                where: { id: orderId },
+                include: {
+                    accountProduct: { select: { id: true, title: true, accountType: true } },
+                },
+            })
+            if (!order) {
+                return NextResponse.json({ error: "订单不存在" }, { status: 404 })
+            }
+            return NextResponse.json({
+                ...order,
+                amount: Number(order.amount),
+                accountProduct: order.accountProduct,
+            })
+        }
 
         const where: Record<string, unknown> = {}
         if (statusFilter && statusFilter !== "all") {
