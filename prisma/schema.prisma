@@ -257,6 +257,7 @@ model AccountProduct {
   content        Json?
   coverImage     String?              @db.Text
   coverRatio     String               @default("3:4") @db.VarChar(10)
+  showCoverImage Boolean              @default(true)
   accountType    String               @db.VarChar(50)
   price          Decimal              @db.Decimal(10, 2)
   originalPrice  Decimal?             @db.Decimal(10, 2)

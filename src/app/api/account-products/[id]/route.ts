@@ -43,7 +43,7 @@ export async function PUT(
     try {
         const body = await request.json()
         const {
-            title, slug, description, content, coverImage, coverRatio,
+            title, slug, description, content, coverImage, coverRatio, showCoverImage,
             accountType, price, originalPrice, stock, validDays,
             features, securityNote, transferGuide, warranty,
             status, categoryId, tagIds,
@@ -70,6 +70,7 @@ export async function PUT(
                 ...(content !== undefined && { content }),
                 ...(coverImage !== undefined && { coverImage: coverImage || null }),
                 ...(coverRatio !== undefined && { coverRatio: normalizeCoverRatio(coverRatio) }),
+                ...(showCoverImage !== undefined && { showCoverImage: Boolean(showCoverImage) }),
                 ...(accountType !== undefined && { accountType: accountType.trim() }),
                 ...(price !== undefined && { price }),
                 ...(originalPrice !== undefined && { originalPrice: originalPrice ?? null }),

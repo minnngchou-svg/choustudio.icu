@@ -49,6 +49,7 @@ interface AccountProduct {
     content: unknown
     coverImage: string | null
     coverRatio: string
+    showCoverImage: boolean
     accountType: string
     price: number
     originalPrice: number | null
@@ -102,6 +103,7 @@ export default function EditAccountProductPage() {
     const [content, setContent] = useState<Block[] | null>(null)
     const [coverImage, setCoverImage] = useState("")
     const [coverRatio, setCoverRatio] = useState("3/4")
+    const [showCoverImage, setShowCoverImage] = useState(true)
     const [accountType, setAccountType] = useState("chatgpt")
     const [price, setPrice] = useState("0")
     const [originalPrice, setOriginalPrice] = useState("")
@@ -135,6 +137,7 @@ export default function EditAccountProductPage() {
                 setContent(getInitialContentForEditor(prod.content))
                 setCoverImage(prod.coverImage || "")
                 setCoverRatio(prod.coverRatio || "3/4")
+                setShowCoverImage(prod.showCoverImage ?? true)
                 setAccountType(prod.accountType)
                 setPrice(String(prod.price))
                 setOriginalPrice(prod.originalPrice != null ? String(prod.originalPrice) : "")
@@ -198,6 +201,7 @@ export default function EditAccountProductPage() {
                 content: content || null,
                 coverImage: coverImage || null,
                 coverRatio,
+                showCoverImage,
                 accountType,
                 price: priceNum,
                 originalPrice: originalPrice ? parseFloat(originalPrice) : null,
@@ -465,6 +469,32 @@ export default function EditAccountProductPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
+                            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/50">
+                                <div className="flex items-center gap-3">
+                                    <i className={`ri-eye-${showCoverImage ? "line" : "off-line"} text-lg text-muted-foreground`} />
+                                    <div>
+                                        <p className="text-sm font-medium">前台显示封面图</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {showCoverImage ? "前台商品详情页将展示封面图" : "前台商品详情页将隐藏封面图"}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    role="switch"
+                                    aria-checked={showCoverImage}
+                                    onClick={() => setShowCoverImage(!showCoverImage)}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                                        showCoverImage ? "bg-primary" : "bg-muted"
+                                    }`}
+                                >
+                                    <span
+                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                            showCoverImage ? "translate-x-6" : "translate-x-1"
+                                        }`}
+                                    />
+                                </button>
+                            </div>
                             <div className="space-y-2">
                                 <Label>封面比例</Label>
                                 <Select value={coverRatio} onValueChange={setCoverRatio}>

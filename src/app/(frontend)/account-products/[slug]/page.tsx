@@ -20,6 +20,7 @@ type AccountProduct = {
     description: string | null
     content: string | null
     coverImage: string | null
+    showCoverImage: boolean
     accountType: string
     price: number
     originalPrice: number | null
@@ -174,7 +175,7 @@ export default function AccountProductDetailPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl">
                 <div className="lg:col-span-2 space-y-8">
                     <FadeContent delay={0.1}>
-                        {product.coverImage && (
+                        {product.coverImage && product.showCoverImage && (
                             <div className="rounded-xl overflow-hidden border border-border/50 bg-muted">
                                 <CoverImage src={product.coverImage} alt={product.title} fallbackIcon="ri-robot-line" />
                             </div>
