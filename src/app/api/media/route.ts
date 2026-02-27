@@ -16,6 +16,7 @@ const ENTITY_TYPES: MediaEntityType[] = [
   "WORK_DESIGN",
   "WORK_DEVELOPMENT",
   "TUTORIAL",
+  "ACCOUNT_PRODUCT",
 ]
 
 function isEntityType(s: string): s is MediaEntityType {
@@ -77,6 +78,13 @@ export async function GET(request: NextRequest) {
       })
       entities = tutorials.map((t) => ({ id: t.id, title: t.title }))
     }
+    if (entityType === "ACCOUNT_PRODUCT") {
+      const products = await prisma.accountProduct.findMany({
+        orderBy: { createdAt: "desc" },
+        select: { id: true, title: true },
+      })
+      entities = products.map((p) => ({ id: p.id, title: p.title }))
+    }
 
     const groups = entities.map(({ id: entityId, title: entityTitle }) => ({
       entityId,
@@ -115,7 +123,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "请选择要上传的文件" }, { status: 400 })
   }
   if (!entityTypeRaw || !isEntityType(entityTypeRaw)) {
-    return NextResponse.json({ error: "请指定有效的 entityType（POST / WORK_DESIGN / WORK_DEVELOPMENT / TUTORIAL）" }, { status: 400 })
+    return NextResponse.json({ error: "请指定有效的 entityType（POST / WORK_DESIGN / WORK_DEVELOPMENT / TUTORIAL / ACCOUNT_PRODUCT）" }, { status: 400 })
   }
   if (!entityId) {
     return NextResponse.json({ error: "请指定 entityId" }, { status: 400 })
